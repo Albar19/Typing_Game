@@ -301,9 +301,9 @@ const WORD_BANKS_EN = {
 const WORD_BANKS_ID = {
   easy: [
     'abu','ada','air','aku','api','apa','ara','asa','ban','bak',
-    'bau','bab','bed','bel','bis','bom','bor','bos','bui','bun',
+    'bau','bab','bed','bel','bis','bom','bor','bos','bui','bun',
     'bus','cap','cat','dam','dan','dom','doa','dua','ego','era',
-    'flu','gas','gel','gua','hak','hal','hari','hot','hub','iga',
+    'flu','gas','gel','gua','hak','hal','hot','hub','iga',
     'ibu','ini','itu','jab','jam','jaz','jet','jin','jip','jok',
     'jus','kap','kas','kat','kol','kon','kos','kot','kue','kur',
     'lab','lap','las','lob','log','lot','luk','mal','mau','mak',
@@ -314,7 +314,7 @@ const WORD_BANKS_ID = {
     'tim','tol','top','tua','tuk','ubi','uji','vas','wol','zat',
   ],
   medium: [
-    'abjad','absen','acung','acuan','adegan','agama','ahli',
+    'abjad','absen','acung','acuan','adegan','agama','ahli','hari',
     'ajaib','akses','aktif','alami','album','altar','ambil',
     'ancam','andal','angka','angin','antar','apung','arena',
     'arsip','atlas','awasi','bakat','bakar','bambu','bantu',
@@ -893,6 +893,8 @@ class Game {
 
   // ── HANDLE ENTITY HIT (bullet reached target) ─────────────
   handleHit(entity) {
+    // Guard: prevent double-processing if bullet hits entity already dead
+    if (!entity.alive) return;
     entity.alive = false;
     this.explode(entity.cx, entity.cy, entity.type);
 
@@ -1008,7 +1010,11 @@ class Game {
     const slowMultiplier = (this.activeBuff && this.activeBuff.id === 'slowmo') ? 0.4 : 1.0;
     for (let i = this.entities.length - 1; i >= 0; i--) {
       const e = this.entities[i];
-      if (!e.alive) { this.entities.splice(i, 1); continue; }
+      if (!e.alive) {
+        if (e === this.currentTarget) this.currentTarget = null;
+        this.entities.splice(i, 1);
+        continue;
+      }
 
       // Fall speed (special items slightly slower)
       let speedMod = (e.type === 'alien') ? 1.0 : 0.7;
@@ -1019,6 +1025,8 @@ class Game {
 
       // Reached bottom?
       if (e.y > canvas.height + 20) {
+        // Mark as dead so bullet won't double-process
+        e.alive = false;
         // Release target lock if this was the current target
         if (e === this.currentTarget) { this.currentTarget = null; }
 
@@ -1333,17 +1341,28 @@ class Game {
     const pillW = textWidth + pillPadX * 2;
     const pillH = fontSize + pillPadY * 2;
 
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.75)';
     ctx.beginPath();
-    ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+    ctx.roundRect(pillX, pillY, pillW, pillH, 5);
     ctx.fill();
 
-    // If targeted, add a border to the pill
+    // Always draw a visible border around the box
+    const borderColors = {
+      alien: 'rgba(255, 50, 50, 0.6)',
+      luckybox: 'rgba(255, 215, 0, 0.6)',
+      heart: 'rgba(255, 105, 180, 0.6)',
+    };
     if (e.isTargeted) {
-      ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
-      ctx.lineWidth = 1;
-      ctx.stroke();
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.8)';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = '#0ff';
+    } else {
+      ctx.strokeStyle = borderColors[e.type] || 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1.5;
     }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
 
     // Render each letter
     const totalWidth = ctx.measureText(word).width;
@@ -1658,6 +1677,8 @@ class Game {
         }
         this.entities = [];
         this.alienSpawnTimer = 0;
+        this.luckySpawnTimer = 0;
+        this.heartSpawnTimer = 0;
       }
     });
 
