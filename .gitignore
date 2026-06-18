@@ -15,3 +15,7 @@ split.py
 # Optional: You can ignore large audio/video assets if you don't want them in git
 # assets/audio/*.mp3
 # assets/images/*.png
+
+# AI Agent & Node
+.agents/
+node_modules/
