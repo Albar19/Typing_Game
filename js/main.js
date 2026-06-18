@@ -7,9 +7,9 @@
 // Replace these empty strings with actual image URLs/paths.
 // If left empty, the game renders neon geometric fallbacks.
 const PLAYER_SPACESHIP_SRC = 'assets/images/player.png';
-const ALIEN_ENEMY_SRC      = 'assets/images/alien.png';
-const LUCKY_BOX_SRC        = 'assets/images/luckybox.png';
-const HEART_SRC            = 'assets/images/heart.png';
+const ALIEN_ENEMY_SRC = 'assets/images/alien.png';
+const LUCKY_BOX_SRC = 'assets/images/luckybox.png';
+const HEART_SRC = 'assets/images/heart.png';
 
 // Preload images only if paths are provided
 const IMAGES = {};
@@ -20,194 +20,194 @@ function preloadImage(key, src) {
   img.onload = () => { IMAGES[key] = img; };
 }
 preloadImage('player', PLAYER_SPACESHIP_SRC);
-preloadImage('alien',  ALIEN_ENEMY_SRC);
-preloadImage('lucky',  LUCKY_BOX_SRC);
-preloadImage('heart',  HEART_SRC);
+preloadImage('alien', ALIEN_ENEMY_SRC);
+preloadImage('lucky', LUCKY_BOX_SRC);
+preloadImage('heart', HEART_SRC);
 
 // ─── AUDIO PLACEHOLDER SYSTEM ────────────────────────────────
 // Each method is a stub ready to be wired up with new Audio().
 const AudioFX = {
-  playTyping()    { const a = new Audio('assets/audio/ketik.mp3'); a.play().catch(()=>{}); },
-  playLaser()     { const a = new Audio('assets/audio/laser.mp3'); a.play().catch(()=>{}); },
-  playExplosion() { const a = new Audio('assets/audio/ledakan.mp3'); a.play().catch(()=>{}); },
-  playBuff()      { const a = new Audio('assets/audio/buff.mp3'); a.play().catch(()=>{}); },
-  playHeal()      { /* Add heal audio if available */ },
-  playHit()       { /* new Audio('hit.mp3').play(); */ },
-  playGameOver()  { const a = new Audio('assets/audio/gameover.mp3'); a.play().catch(()=>{}); },
+  playTyping() { const a = new Audio('assets/audio/ketik.mp3'); a.play().catch(() => { }); },
+  playLaser() { const a = new Audio('assets/audio/laser.mp3'); a.play().catch(() => { }); },
+  playExplosion() { const a = new Audio('assets/audio/ledakan.mp3'); a.play().catch(() => { }); },
+  playBuff() { const a = new Audio('assets/audio/buff.mp3'); a.play().catch(() => { }); },
+  playHeal() { /* Add heal audio if available */ },
+  playHit() { /* new Audio('hit.mp3').play(); */ },
+  playGameOver() { const a = new Audio('assets/audio/gameover.mp3'); a.play().catch(() => { }); },
 };
 
 // ─── WORD BANKS (scaled by difficulty, per language) ─────────
 const WORD_BANKS_EN = {
   easy: [
-    'ace','arm','bat','box','bug','cap','cow','cup','dew','dig',
-    'dot','dug','elk','end','fan','fig','fog','fun','gap','gem',
-    'gum','gut','hat','hex','hop','hub','ice','imp','ink','ion',
-    'ivy','jam','jar','jaw','jet','jig','jot','joy','jug','keg',
-    'key','kid','kit','lab','lap','law','leg','lid','lip','log',
-    'lot','lug','map','mat','mix','mob','mop','mud','mug','nap',
-    'net','nil','nod','nor','nut','oak','odd','oil','opt','orb',
-    'ore','owl','pad','paw','peg','pen','pig','pin','pit','pod',
-    'pot','pub','pun','rag','ram','ran','rap','rat','raw','red',
-    'rib','rid','rim','rip','rod','rot','row','rug','rum','run',
-    'rut','sap','sat','saw','set','sin','sip','sit','six','ski',
-    'sob','sod','sum','sun','tab','tag','tan','tap','tar','tax',
-    'ten','the','tie','tin','tip','toe','ton','top','tow','toy',
-    'tub','tug','two','urn','van','vat','vet','vow','wag','war',
-    'wax','web','wig','win','wit','wok','won','wry','yak','yam',
-    'yap','yaw','yep','yet','yew','zip','zoo',
+    'ace', 'arm', 'bat', 'box', 'bug', 'cap', 'cow', 'cup', 'dew', 'dig',
+    'dot', 'dug', 'elk', 'end', 'fan', 'fig', 'fog', 'fun', 'gap', 'gem',
+    'gum', 'gut', 'hat', 'hex', 'hop', 'hub', 'ice', 'imp', 'ink', 'ion',
+    'ivy', 'jam', 'jar', 'jaw', 'jet', 'jig', 'jot', 'joy', 'jug', 'keg',
+    'key', 'kid', 'kit', 'lab', 'lap', 'law', 'leg', 'lid', 'lip', 'log',
+    'lot', 'lug', 'map', 'mat', 'mix', 'mob', 'mop', 'mud', 'mug', 'nap',
+    'net', 'nil', 'nod', 'nor', 'nut', 'oak', 'odd', 'oil', 'opt', 'orb',
+    'ore', 'owl', 'pad', 'paw', 'peg', 'pen', 'pig', 'pin', 'pit', 'pod',
+    'pot', 'pub', 'pun', 'rag', 'ram', 'ran', 'rap', 'rat', 'raw', 'red',
+    'rib', 'rid', 'rim', 'rip', 'rod', 'rot', 'row', 'rug', 'rum', 'run',
+    'rut', 'sap', 'sat', 'saw', 'set', 'sin', 'sip', 'sit', 'six', 'ski',
+    'sob', 'sod', 'sum', 'sun', 'tab', 'tag', 'tan', 'tap', 'tar', 'tax',
+    'ten', 'the', 'tie', 'tin', 'tip', 'toe', 'ton', 'top', 'tow', 'toy',
+    'tub', 'tug', 'two', 'urn', 'van', 'vat', 'vet', 'vow', 'wag', 'war',
+    'wax', 'web', 'wig', 'win', 'wit', 'wok', 'won', 'wry', 'yak', 'yam',
+    'yap', 'yaw', 'yep', 'yet', 'yew', 'zip', 'zoo',
   ],
   medium: [
-    'alpha','amber','anvil','armor','atlas','azure','basin','blast',
-    'blaze','blink','bloom','brain','brave','brick','brisk','cable',
-    'candy','cedar','chain','charm','chess','chill','china','civic',
-    'claim','clash','clear','cliff','climb','cloud','cobra','comet',
-    'coral','craft','crane','crash','crest','crown','crush','cubic',
-    'curve','dance','debug','delta','depth','disco','draft','drain',
-    'dream','drift','drone','dwarf','eagle','earth','elder','ember',
-    'enact','epoch','equal','equip','erupt','event','exile','expat',
-    'extra','fable','feast','fiber','flame','flare','flash','fleet',
-    'flint','float','flora','fluid','forge','forth','frost','gleam',
-    'globe','gloom','glyph','grain','grape','grasp','grind','guild',
-    'haven','hazel','helix','honor','hover','humid','hyper','ivory',
-    'jewel','joust','knack','kneel','kraft','lance','laser','latch',
-    'layer','level','light','llama','lodge','logic','lunar','lyric',
-    'magic','manor','maple','marsh','medal','mercy','metal','micro',
-    'mimic','minor','mocha','model','moral','mount','music','nerve',
-    'noble','north','novel','ocean','omega','onset','opera','optic',
-    'orbit','oxide','ozone','panic','patch','pearl','phase','piano',
-    'pilot','pixel','plank','plant','plaza','plumb','plume','polar',
-    'power','prawn','pride','prime','print','prism','prize','probe',
-    'proof','prose','proxy','pulse','quake','query','quest','quick',
-    'quota','radar','rapid','raven','realm','reign','relay','ridge',
-    'rival','robin','royal','rumba','saber','saint','salsa','scale',
-    'scout','serif','shark','shelf','shift','sigma','sleek','slice',
-    'slope','smart','smoke','snake','snare','solar','sonic','south',
-    'space','spark','spawn','spear','spice','spike','spine','spoke',
-    'squad','stack','staff','stage','stain','stake','stale','stamp',
-    'stand','stark','steam','steel','steep','steer','stern','still',
-    'stock','stoic','stone','storm','stout','stove','strap','straw',
-    'strip','stump','super','surge','swamp','sweep','swift','sword',
-    'talon','tempo','tiger','token','topaz','total','tower','trace',
-    'track','trade','trail','train','trait','trend','triad','trial',
-    'trick','trine','troop','truce','trunk','trust','tulip','turbo',
-    'tweed','twist','ultra','umbra','unify','unity','until','upper',
-    'urban','usher','utter','vague','valve','vault','vigor','vinyl',
-    'viper','virus','visor','vista','vital','vivid','vocal','voice',
-    'voter','vowel','watch','water','wheat','whirl','wield','witch',
-    'world','wound','wrath','yacht','yield','youth','zebra','zonal',
+    'alpha', 'amber', 'anvil', 'armor', 'atlas', 'azure', 'basin', 'blast',
+    'blaze', 'blink', 'bloom', 'brain', 'brave', 'brick', 'brisk', 'cable',
+    'candy', 'cedar', 'chain', 'charm', 'chess', 'chill', 'china', 'civic',
+    'claim', 'clash', 'clear', 'cliff', 'climb', 'cloud', 'cobra', 'comet',
+    'coral', 'craft', 'crane', 'crash', 'crest', 'crown', 'crush', 'cubic',
+    'curve', 'dance', 'debug', 'delta', 'depth', 'disco', 'draft', 'drain',
+    'dream', 'drift', 'drone', 'dwarf', 'eagle', 'earth', 'elder', 'ember',
+    'enact', 'epoch', 'equal', 'equip', 'erupt', 'event', 'exile', 'expat',
+    'extra', 'fable', 'feast', 'fiber', 'flame', 'flare', 'flash', 'fleet',
+    'flint', 'float', 'flora', 'fluid', 'forge', 'forth', 'frost', 'gleam',
+    'globe', 'gloom', 'glyph', 'grain', 'grape', 'grasp', 'grind', 'guild',
+    'haven', 'hazel', 'helix', 'honor', 'hover', 'humid', 'hyper', 'ivory',
+    'jewel', 'joust', 'knack', 'kneel', 'kraft', 'lance', 'laser', 'latch',
+    'layer', 'level', 'light', 'llama', 'lodge', 'logic', 'lunar', 'lyric',
+    'magic', 'manor', 'maple', 'marsh', 'medal', 'mercy', 'metal', 'micro',
+    'mimic', 'minor', 'mocha', 'model', 'moral', 'mount', 'music', 'nerve',
+    'noble', 'north', 'novel', 'ocean', 'omega', 'onset', 'opera', 'optic',
+    'orbit', 'oxide', 'ozone', 'panic', 'patch', 'pearl', 'phase', 'piano',
+    'pilot', 'pixel', 'plank', 'plant', 'plaza', 'plumb', 'plume', 'polar',
+    'power', 'prawn', 'pride', 'prime', 'print', 'prism', 'prize', 'probe',
+    'proof', 'prose', 'proxy', 'pulse', 'quake', 'query', 'quest', 'quick',
+    'quota', 'radar', 'rapid', 'raven', 'realm', 'reign', 'relay', 'ridge',
+    'rival', 'robin', 'royal', 'rumba', 'saber', 'saint', 'salsa', 'scale',
+    'scout', 'serif', 'shark', 'shelf', 'shift', 'sigma', 'sleek', 'slice',
+    'slope', 'smart', 'smoke', 'snake', 'snare', 'solar', 'sonic', 'south',
+    'space', 'spark', 'spawn', 'spear', 'spice', 'spike', 'spine', 'spoke',
+    'squad', 'stack', 'staff', 'stage', 'stain', 'stake', 'stale', 'stamp',
+    'stand', 'stark', 'steam', 'steel', 'steep', 'steer', 'stern', 'still',
+    'stock', 'stoic', 'stone', 'storm', 'stout', 'stove', 'strap', 'straw',
+    'strip', 'stump', 'super', 'surge', 'swamp', 'sweep', 'swift', 'sword',
+    'talon', 'tempo', 'tiger', 'token', 'topaz', 'total', 'tower', 'trace',
+    'track', 'trade', 'trail', 'train', 'trait', 'trend', 'triad', 'trial',
+    'trick', 'trine', 'troop', 'truce', 'trunk', 'trust', 'tulip', 'turbo',
+    'tweed', 'twist', 'ultra', 'umbra', 'unify', 'unity', 'until', 'upper',
+    'urban', 'usher', 'utter', 'vague', 'valve', 'vault', 'vigor', 'vinyl',
+    'viper', 'virus', 'visor', 'vista', 'vital', 'vivid', 'vocal', 'voice',
+    'voter', 'vowel', 'watch', 'water', 'wheat', 'whirl', 'wield', 'witch',
+    'world', 'wound', 'wrath', 'yacht', 'yield', 'youth', 'zebra', 'zonal',
   ],
   hard: [
-    'alchemy','android','anomaly','apostle','archive','arsenal',
-    'balance','banshee','battery','beacon','blanket','blazing',
-    'blister','booster','capsule','cardiac','cascade','celsius',
-    'chamber','channel','chapter','chariot','chimera','circuit',
-    'cluster','coaster','cockpit','compile','complex','console',
-    'contest','control','convert','crystal','current','crusade',
-    'cyclone','datalog','decibel','decrypt','defense','destiny',
-    'diamond','digital','discord','display','distort','dolphin',
-    'dynasty','eclipse','element','embargo','encrypt','entropy',
-    'episode','erosion','exploit','extract','falafel','fallout',
-    'fantasy','fiction','firefly','fission','flannel','flexion',
-    'formula','fortune','freight','furnace','gadget','galahad',
-    'gateway','genesis','glacier','granite','gravity','griffin',
-    'habitat','halcyon','handoff','harmony','harvest','heretic',
-    'hexagon','holster','horizon','hostile','hydrant','hypnotic',
-    'iceberg','igniter','illusion','imaging','implant','impulse',
-    'inferno','insight','install','ionizer','javelin','jigsaw',
-    'journal','jubilee','justice','ketchup','kingdom','kinetic',
-    'kitchen','lantern','lattice','leather','liberty','lighten',
-    'lockout','maestro','magnate','mandala','martial','masking',
-    'maximum','mercury','militia','mineral','mission','mixture',
-    'modular','monitor','monsoon','monster','morning','mystery',
-    'nebula','neptune','network','neutron','nitrate','nuclear',
-    'nucleus','nullify','obelisk','obscure','optimal','organic',
-    'origami','outpost','overdub','ovation','oxidize','package',
-    'paddock','paradox','passage','patriot','payload','penalty',
-    'pension','peptide','phantom','pilgrim','planner','plastic',
-    'platoon','plunder','polygon','popcorn','precept','presage',
-    'problem','procure','prodigy','profile','project','protect',
-    'protest','protons','provoke','pyramid','quantum','quarrel',
-    'radical','rampart','reactor','rebound','recital','refract',
-    'refugee','remnant','require','resolve','revolve','ripcord',
-    'runtime','rupture','salvage','scandal','scarlet','scatter',
-    'scourge','segment','shelter','shuttle','silicon','sinuous',
-    'skeptic','society','solvent','species','stadium','stealth',
-    'storage','stratum','subject','subsidy','sunrise','surplus',
-    'suspend','symbiont','synapse','tabloid','takeoff','tempest',
-    'theorem','therapy','thermal','thunder','topiary','torpedo',
-    'torsion','tracker','trading','transit','trigger','tropics',
-    'tsunami','turbine','tweaker','twister','unicorn','uniform',
-    'unleash','uranium','utility','vaccine','vagrant','vanguard',
-    'venture','verdict','version','vertigo','veteran','villain',
-    'vintage','voltage','vortex','vulture','warhead','warrior',
-    'whisker','whistle','widgeon','wildcat','witness','wrangle',
-    'xchange','yielded','zealous','zephyr','zenith',
+    'alchemy', 'android', 'anomaly', 'apostle', 'archive', 'arsenal',
+    'balance', 'banshee', 'battery', 'beacon', 'blanket', 'blazing',
+    'blister', 'booster', 'capsule', 'cardiac', 'cascade', 'celsius',
+    'chamber', 'channel', 'chapter', 'chariot', 'chimera', 'circuit',
+    'cluster', 'coaster', 'cockpit', 'compile', 'complex', 'console',
+    'contest', 'control', 'convert', 'crystal', 'current', 'crusade',
+    'cyclone', 'datalog', 'decibel', 'decrypt', 'defense', 'destiny',
+    'diamond', 'digital', 'discord', 'display', 'distort', 'dolphin',
+    'dynasty', 'eclipse', 'element', 'embargo', 'encrypt', 'entropy',
+    'episode', 'erosion', 'exploit', 'extract', 'falafel', 'fallout',
+    'fantasy', 'fiction', 'firefly', 'fission', 'flannel', 'flexion',
+    'formula', 'fortune', 'freight', 'furnace', 'gadget', 'galahad',
+    'gateway', 'genesis', 'glacier', 'granite', 'gravity', 'griffin',
+    'habitat', 'halcyon', 'handoff', 'harmony', 'harvest', 'heretic',
+    'hexagon', 'holster', 'horizon', 'hostile', 'hydrant', 'hypnotic',
+    'iceberg', 'igniter', 'illusion', 'imaging', 'implant', 'impulse',
+    'inferno', 'insight', 'install', 'ionizer', 'javelin', 'jigsaw',
+    'journal', 'jubilee', 'justice', 'ketchup', 'kingdom', 'kinetic',
+    'kitchen', 'lantern', 'lattice', 'leather', 'liberty', 'lighten',
+    'lockout', 'maestro', 'magnate', 'mandala', 'martial', 'masking',
+    'maximum', 'mercury', 'militia', 'mineral', 'mission', 'mixture',
+    'modular', 'monitor', 'monsoon', 'monster', 'morning', 'mystery',
+    'nebula', 'neptune', 'network', 'neutron', 'nitrate', 'nuclear',
+    'nucleus', 'nullify', 'obelisk', 'obscure', 'optimal', 'organic',
+    'origami', 'outpost', 'overdub', 'ovation', 'oxidize', 'package',
+    'paddock', 'paradox', 'passage', 'patriot', 'payload', 'penalty',
+    'pension', 'peptide', 'phantom', 'pilgrim', 'planner', 'plastic',
+    'platoon', 'plunder', 'polygon', 'popcorn', 'precept', 'presage',
+    'problem', 'procure', 'prodigy', 'profile', 'project', 'protect',
+    'protest', 'protons', 'provoke', 'pyramid', 'quantum', 'quarrel',
+    'radical', 'rampart', 'reactor', 'rebound', 'recital', 'refract',
+    'refugee', 'remnant', 'require', 'resolve', 'revolve', 'ripcord',
+    'runtime', 'rupture', 'salvage', 'scandal', 'scarlet', 'scatter',
+    'scourge', 'segment', 'shelter', 'shuttle', 'silicon', 'sinuous',
+    'skeptic', 'society', 'solvent', 'species', 'stadium', 'stealth',
+    'storage', 'stratum', 'subject', 'subsidy', 'sunrise', 'surplus',
+    'suspend', 'symbiont', 'synapse', 'tabloid', 'takeoff', 'tempest',
+    'theorem', 'therapy', 'thermal', 'thunder', 'topiary', 'torpedo',
+    'torsion', 'tracker', 'trading', 'transit', 'trigger', 'tropics',
+    'tsunami', 'turbine', 'tweaker', 'twister', 'unicorn', 'uniform',
+    'unleash', 'uranium', 'utility', 'vaccine', 'vagrant', 'vanguard',
+    'venture', 'verdict', 'version', 'vertigo', 'veteran', 'villain',
+    'vintage', 'voltage', 'vortex', 'vulture', 'warhead', 'warrior',
+    'whisker', 'whistle', 'widgeon', 'wildcat', 'witness', 'wrangle',
+    'xchange', 'yielded', 'zealous', 'zephyr', 'zenith',
   ],
   expert: [
-    'absolute','abstract','accuracy','advanced','advisory',
-    'advocate','aircraft','alchemic','alliance','almanack',
-    'ambiance','amusedly','analysis','ancestor','antidote',
-    'aperture','aquarium','artifice','assassin','backbone',
-    'bacteria','ballroom','bankrupt','biomorph','blackout',
-    'blizzard','boundary','bracelet','broadest','bulkhead',
-    'calendar','campaign','capsicum','cardinal','catalyst',
-    'category','cerebral','champion','chapters','checkbox',
-    'chromium','claymore','cliffhanger','cockerel','collider',
-    'comeback','compiler','compound','computer','concrete',
-    'conquest','contract','controls','copyhold','corridor',
-    'crossbow','crucible','cultural','currency','cyberpunk',
-    'database','deadline','debugger','decimate','defender',
-    'diagnose','dialogue','diplomat','discount','dispatch',
-    'dividend','doctrine','document','dominant','dominion',
-    'doorstep','download','dreadful','dropship','dynamite',
-    'eclipsed','eighteen','electron','eloquent','embedded',
-    'emigrant','emphatic','encoding','endpoint','enforced',
-    'engulfed','enormous','envelope','equation','equipped',
-    'espresso','eternity','evaluate','eventful','evidence',
-    'exchange','excludes','exercise','expedite','explorer',
-    'external','extremes','fabulous','facedown','failsafe',
-    'familiar','fastball','featured','feedback','filename',
-    'finalize','finished','firmware','flagship','flashgun',
-    'flexible','folklore','footstep','forecast','forensic',
-    'fragment','freefall','frequent','frontier','fullback',
-    'function','futility','gatepost','genocide','gigabyte',
-    'gladiola','globetrotter','glossary','graphene','greenery',
-    'gridlock','guardian','guidance','gunsmith','gyratory',
-    'halftime','handbook','handmade','handover','hardcore',
-    'hardware','harmonic','headband','headline','helpline',
-    'heritage','highrise','hologram','homeland','horseman',
-    'hospital','humanoid','huntsman','hydrogen','hysteria',
-    'icebound','ignition','illusive','imagined','immunity',
-    'imperial','incident','indulged','industry','infrared',
-    'inherent','injector','innocent','inscribe','insignia',
-    'integral','interact','interior','interval','invasion',
-    'invented','invoking','iodizing','isolated','issuing',
-    'jailbird','jamboree','japanese','jettison','judgment',
-    'junction','keepsake','keyboard','khaki','knockout',
-    'labeling','lambchop','landmark','language','latitude',
-    'lavender','layabout','leapfrog','leverage','licensed',
-    'lifelong','ligature','limiting','linkable','literacy',
-    'lockdown','longhand','luminous','magnetic','mainland',
-    'majestic','manifest','maritime','mastered','matchbox',
-    'maximise','mechanic','medicine','membrane','memorial',
-    'merchant','metadata','milepost','minimize','minority',
-    'modifier','moisture','molecule','momentum','monopoly',
-    'monument','mortgage','multiply','mustache','mutation',
-    'navigate','notebook','nucleus','numerous','obituary',
-    'obligate','obstacle','occupied','offshoot','onscreen',
-    'operated','opponent','opposing','optimise','optional',
-    'organism','original','orthodox','outbreak','outreach',
-    'overcome','overhead','overload','overlord','overtake',
-    'paradigm','parallel','paranoid','particle','passport',
-    'patience','peculiar','pendulum','pentagon','perceive',
-    'persists','personal','petition','pipeline','platform',
-    'playback','pleasure','polished','populist','portable',
-    'position','positive','powerful','preclude','predator',
-    'preserve','pressure','presumed','proceeds','producer',
-    'profound','progress','prohibit','prologue','promptly',
-    'properly','proposal','prospect','protocol','provider',
-    'publicly','pullback','punitive','purchase','pursuant',
-    'puzzling','quadrant','quantify','quantity','question',
+    'absolute', 'abstract', 'accuracy', 'advanced', 'advisory',
+    'advocate', 'aircraft', 'alchemic', 'alliance', 'almanack',
+    'ambiance', 'amusedly', 'analysis', 'ancestor', 'antidote',
+    'aperture', 'aquarium', 'artifice', 'assassin', 'backbone',
+    'bacteria', 'ballroom', 'bankrupt', 'biomorph', 'blackout',
+    'blizzard', 'boundary', 'bracelet', 'broadest', 'bulkhead',
+    'calendar', 'campaign', 'capsicum', 'cardinal', 'catalyst',
+    'category', 'cerebral', 'champion', 'chapters', 'checkbox',
+    'chromium', 'claymore', 'cliffhanger', 'cockerel', 'collider',
+    'comeback', 'compiler', 'compound', 'computer', 'concrete',
+    'conquest', 'contract', 'controls', 'copyhold', 'corridor',
+    'crossbow', 'crucible', 'cultural', 'currency', 'cyberpunk',
+    'database', 'deadline', 'debugger', 'decimate', 'defender',
+    'diagnose', 'dialogue', 'diplomat', 'discount', 'dispatch',
+    'dividend', 'doctrine', 'document', 'dominant', 'dominion',
+    'doorstep', 'download', 'dreadful', 'dropship', 'dynamite',
+    'eclipsed', 'eighteen', 'electron', 'eloquent', 'embedded',
+    'emigrant', 'emphatic', 'encoding', 'endpoint', 'enforced',
+    'engulfed', 'enormous', 'envelope', 'equation', 'equipped',
+    'espresso', 'eternity', 'evaluate', 'eventful', 'evidence',
+    'exchange', 'excludes', 'exercise', 'expedite', 'explorer',
+    'external', 'extremes', 'fabulous', 'facedown', 'failsafe',
+    'familiar', 'fastball', 'featured', 'feedback', 'filename',
+    'finalize', 'finished', 'firmware', 'flagship', 'flashgun',
+    'flexible', 'folklore', 'footstep', 'forecast', 'forensic',
+    'fragment', 'freefall', 'frequent', 'frontier', 'fullback',
+    'function', 'futility', 'gatepost', 'genocide', 'gigabyte',
+    'gladiola', 'globetrotter', 'glossary', 'graphene', 'greenery',
+    'gridlock', 'guardian', 'guidance', 'gunsmith', 'gyratory',
+    'halftime', 'handbook', 'handmade', 'handover', 'hardcore',
+    'hardware', 'harmonic', 'headband', 'headline', 'helpline',
+    'heritage', 'highrise', 'hologram', 'homeland', 'horseman',
+    'hospital', 'humanoid', 'huntsman', 'hydrogen', 'hysteria',
+    'icebound', 'ignition', 'illusive', 'imagined', 'immunity',
+    'imperial', 'incident', 'indulged', 'industry', 'infrared',
+    'inherent', 'injector', 'innocent', 'inscribe', 'insignia',
+    'integral', 'interact', 'interior', 'interval', 'invasion',
+    'invented', 'invoking', 'iodizing', 'isolated', 'issuing',
+    'jailbird', 'jamboree', 'japanese', 'jettison', 'judgment',
+    'junction', 'keepsake', 'keyboard', 'khaki', 'knockout',
+    'labeling', 'lambchop', 'landmark', 'language', 'latitude',
+    'lavender', 'layabout', 'leapfrog', 'leverage', 'licensed',
+    'lifelong', 'ligature', 'limiting', 'linkable', 'literacy',
+    'lockdown', 'longhand', 'luminous', 'magnetic', 'mainland',
+    'majestic', 'manifest', 'maritime', 'mastered', 'matchbox',
+    'maximise', 'mechanic', 'medicine', 'membrane', 'memorial',
+    'merchant', 'metadata', 'milepost', 'minimize', 'minority',
+    'modifier', 'moisture', 'molecule', 'momentum', 'monopoly',
+    'monument', 'mortgage', 'multiply', 'mustache', 'mutation',
+    'navigate', 'notebook', 'nucleus', 'numerous', 'obituary',
+    'obligate', 'obstacle', 'occupied', 'offshoot', 'onscreen',
+    'operated', 'opponent', 'opposing', 'optimise', 'optional',
+    'organism', 'original', 'orthodox', 'outbreak', 'outreach',
+    'overcome', 'overhead', 'overload', 'overlord', 'overtake',
+    'paradigm', 'parallel', 'paranoid', 'particle', 'passport',
+    'patience', 'peculiar', 'pendulum', 'pentagon', 'perceive',
+    'persists', 'personal', 'petition', 'pipeline', 'platform',
+    'playback', 'pleasure', 'polished', 'populist', 'portable',
+    'position', 'positive', 'powerful', 'preclude', 'predator',
+    'preserve', 'pressure', 'presumed', 'proceeds', 'producer',
+    'profound', 'progress', 'prohibit', 'prologue', 'promptly',
+    'properly', 'proposal', 'prospect', 'protocol', 'provider',
+    'publicly', 'pullback', 'punitive', 'purchase', 'pursuant',
+    'puzzling', 'quadrant', 'quantify', 'quantity', 'question',
     'quotient',
   ],
 };
@@ -215,141 +215,140 @@ const WORD_BANKS_EN = {
 // ─── INDONESIAN WORD BANKS ───────────────────────────────────
 const WORD_BANKS_ID = {
   easy: [
-    'abu','ada','air','aku','api','apa','ara','asa','ban','bak',
-    'bau','bab','bed','bel','bis','bom','bor','bos','bui','bun',
-
-    'bus','cap','cat','dam','dan','dom','doa','dua','ego','era',
-    'flu','gas','gel','gua','hak','hal','hot','hub','iga',
-    'ibu','ini','itu','jab','jam','jaz','jet','jin','jip','jok',
-    'jus','kap','kas','kat','kol','kon','kos','kot','kue','kur',
-    'lab','lap','las','lob','log','lot','luk','mal','mau','mak',
-    'mas','mat','mie','mol','nol','nya','oke','ora','pam','pak',
-    'pan','pas','per','pin','pir','pot','pun','rak','ram','ras',
-    'rel','rem','rob','rok','rom','roh','rum','rut','sah','sak',
-    'sal','sap','sel','set','sol','sum','sus','tam','teh','tik',
-    'tim','tol','top','tua','tuk','ubi','uji','vas','wol','zat',
+    'abu', 'ada', 'air', 'aku', 'api', 'apa', 'ara', 'asa', 'ban', 'bak',
+    'bau', 'bab', 'bah', 'bel', 'bis', 'bom', 'bor', 'bos', 'bui', 'bun',
+    'bus', 'cap', 'cat', 'dam', 'dan', 'dom', 'doa', 'dua', 'ego', 'era',
+    'flu', 'gas', 'gel', 'gua', 'hak', 'hal', 'hai', 'hiu', 'iga',
+    'ibu', 'ini', 'itu', 'jas', 'jam', 'jua', 'juz', 'jin', 'alu', 'jok',
+    'jus', 'kap', 'kas', 'kah', 'kol', 'kok', 'kos', 'kek', 'kue', 'kur',
+    'lah', 'lap', 'las', 'lem', 'les', 'lor', 'luk', 'mah', 'mau', 'mak',
+    'mas', 'mat', 'mie', 'mur', 'nol', 'nya', 'oli', 'ons', 'pos', 'pak',
+    'pen', 'pas', 'per', 'pes', 'pir', 'pon', 'pun', 'rak', 'ram', 'ras',
+    'rel', 'rem', 'rim', 'rok', 'rit', 'roh', 'ruh', 'ria', 'rua', 'sah', 'sak',
+    'sal', 'sap', 'sel', 'sen', 'sok', 'sup', 'sih', 'tam', 'teh', 'tik',
+    'tim', 'tol', 'top', 'tua', 'tuk', 'ubi', 'uji', 'vas', 'wah', 'zat',
   ],
   medium: [
-    'abjad','absen','acung','acuan','adegan','agama','ahli','hari',
-    'ajaib','akses','aktif','alami','album','altar','ambil',
-    'ancam','andal','angka','angin','antar','apung','arena',
-    'arsip','atlas','awasi','bakat','bakar','bambu','bantu',
-    'baris','batas','batin','bayar','bedah','bekal','belah',
-    'benar','berita','bijak','bilas','bisik','buang','buaya',
-    'budak','bukit','bulat','bumbu','bunga','buruk','cabai',
-    'cacat','cedok','cagar','calon','camat','catat','cekik',
-    'celah','cepat','cipta','corak','cuaca','cubit','cocok',
-    'curah','dahan','damai','debat','dekat','delta','demam',
-    'derap','desas','dewan','didik','dinas','domba','dunia',
-    'dusun','eksak','ember','emosi','empat','endap','emas',
-    'elang','fajar','fatal','fauna','fiber','figur','final',
-    'flora','fokus','forum','fosil','gagas','galak','garuk',
-    'gelar','gempa','genap','gerak','gigit','gosip','grasi',
-    'habis','halal','harap','harga','hebat','hemat','hibah',
-    'hijau','hilir','hutan','ideal','iklan','ilham','imaji',
-    'indah','input','jahat','jarak','jatuh','jelas','jenis',
-    'jeruk','jihad','jilid','juluk','jurus','kabar','kabel',
-    'kacau','kadar','kadal','kalah','kamar','kasur','kecil',
-    'kejar','keras','kilat','klaim','kobar','kopra','krisis',
-    'kubis','kulit','kumis','kursi','lahan','lapar','layak',
-    'lebah','lemah','licik','limit','logam','lokal','lomba',
-    'lunak','lunas','mahal','mahir','makan','makin','malah',
-    'mandi','marak','marga','merah','milik','mimpi','mirip',
-    'misil','mobil','model','mogok','moral','motif','mulia',
-    'mulut','mulus','mural','murni','nakal','napas','nasib',
-    'nekat','nikah','nomor','norma','nanas','nyala','oasis',
-    'obral','organ','paham','paksa','panas','panel','papan',
-    'pasar','pecah','pedas','peluk','perak','pergi','pesan',
-    'petak','pilar','polah','prima','prosa','puasa','pucat',
-    'radar','rajin','rapat','redam','renang','resah','resmi',
-    'robek','rahim','rubah','ruang','sabuk','sains','sakit',
-    'saldo','salut','samar','saraf','sebab','semak','sibuk',
-    'siram','sisir','solar','sulit','sulur','surat','tabir',
-    'tajam','taman','tanah','tapak','tekad','telur','tenar',
-    'terka','tidak','tiket','timah','tinta','tokoh','topan',
-    'tujuh','tumor','tunas','tusuk','udara','ukiran','ulang',
-    'ulama','utama','valas','virus','vokal','wajah','warna',
-    'wasit','yakni','yakin','iuran','zakar','zaman','zebra',
+    'abjad', 'absen', 'acung', 'acuan', 'adegan', 'agama', 'ahli', 'hari',
+    'ajaib', 'akrab', 'akbar', 'alami', 'ampuh', 'asing', 'ambil',
+    'ancam', 'andal', 'angka', 'angin', 'antar', 'apung', 'aneka',
+    'arwah', 'bakti', 'awasi', 'bakat', 'bakar', 'bambu', 'bantu',
+    'baris', 'batas', 'batin', 'bayar', 'bedah', 'bekal', 'belah',
+    'benar', 'berita', 'bijak', 'bilas', 'bisik', 'buang', 'buaya',
+    'budak', 'bukit', 'bulat', 'bumbu', 'bunga', 'buruk', 'cabai',
+    'cacat', 'cedok', 'cagar', 'calon', 'camat', 'catat', 'cekik',
+    'celah', 'cepat', 'cipta', 'corak', 'cuaca', 'cubit', 'cocok',
+    'curah', 'dahan', 'damai', 'debat', 'dekat', 'delta', 'demam',
+    'derap', 'desas', 'dewan', 'didik', 'dinas', 'domba', 'dunia',
+    'dusun', 'eksak', 'ember', 'emosi', 'empat', 'endap', 'emas',
+    'elang', 'fajar', 'fatal', 'fauna', 'serat', 'sosok', 'akhir',
+    'pohon', 'pusat', 'sekat', 'purba', 'gagas', 'galak', 'garuk',
+    'gelar', 'gempa', 'genap', 'gerak', 'gigit', 'gosip', 'ampun',
+    'habis', 'halal', 'harap', 'harga', 'hebat', 'hemat', 'hibah',
+    'hijau', 'hilir', 'hutan', 'ideal', 'iklan', 'ilham', 'imaji',
+    'indah', 'masuk', 'jahat', 'jarak', 'jatuh', 'jelas', 'jenis',
+    'jeruk', 'jihad', 'jilid', 'juluk', 'jurus', 'kabar', 'kawat',
+    'kacau', 'kadar', 'kadal', 'kalah', 'kamar', 'kasur', 'kecil',
+    'kejar', 'keras', 'kilat', 'tagih', 'kobar', 'kopra', 'krisis',
+    'kubis', 'kulit', 'kumis', 'kursi', 'lahan', 'lapar', 'layak',
+    'lebah', 'lemah', 'licik', 'ujung', 'logam', 'lokal', 'lomba',
+    'lunak', 'lunas', 'mahal', 'mahir', 'makan', 'makin', 'malah',
+    'mandi', 'marak', 'marga', 'merah', 'milik', 'mimpi', 'mirip',
+    'rudal', 'mobil', 'ragam', 'mogok', 'watak', 'karsa', 'mulia',
+    'mulut', 'mulus', 'lukis', 'murni', 'nakal', 'napas', 'nasib',
+    'nekat', 'nikah', 'nomor', 'norma', 'nanas', 'nyala', 'danau',
+    'obral', 'tubuh', 'paham', 'paksa', 'panas', 'bilah', 'papan',
+    'pasar', 'pecah', 'pedas', 'peluk', 'perak', 'pergi', 'pesan',
+    'petak', 'pilar', 'polah', 'sehat', 'prosa', 'puasa', 'pucat',
+    'lacak', 'rajin', 'rapat', 'redam', 'renang', 'resah', 'resmi',
+    'robek', 'rahim', 'rubah', 'ruang', 'sabuk', 'nalar', 'sakit',
+    'pundi', 'salut', 'samar', 'saraf', 'sebab', 'semak', 'sibuk',
+    'siram', 'sisir', 'surya', 'sulit', 'sulur', 'surat', 'tabir',
+    'tajam', 'taman', 'tanah', 'tapak', 'tekad', 'telur', 'tenar',
+    'terka', 'tidak', 'tanda', 'timah', 'tinta', 'tokoh', 'topan',
+    'tujuh', 'bisul', 'tunas', 'tusuk', 'udara', 'ukiran', 'ulang',
+    'ulama', 'utama', 'tukar', 'kuman', 'suara', 'wajah', 'warna',
+    'wasit', 'yakni', 'yakin', 'iuran', 'zakar', 'zaman', 'satwa',
   ],
   hard: [
-    'absolut','adrenal','akrobat','akuntan','alamiah','alergi',
-    'amanat','anggrek','anomali','apotek','artisan','aspirasi',
-    'bakteri','bandara','barokah','berlian','bijaksana','bintang',
-    'bongkar','botanik','budiman','cakrawala','catatan','cendana',
-    'centang','cerdas','ciptaan','dampak','daratan','debitur',
-    'definisi','dekomposisi','dermaga','dewata','dinasti','diploma',
-    'disiplin','dorman','ekologi','ekonomi','ekskavasi','elektro',
-    'empiris','endogen','epidemi','etalase','evolusi','falsafah',
-    'fantasi','fenomena','filamen','formula','galaksi','garnisun',
-    'gelagar','genetik','geologi','gerakan','gigabit','gradasi',
-    'habitat','hamster','harmoni','hermetik','hibrida','histori',
-    'hormon','ibadah','ideologi','imajinasi','implan','impoten',
-    'inovasi','instalasi','inversi','isoterm','jagat','jaminan',
-    'jangkar','jejaring','jupiter','kacamata','kalkulasi','kandidat',
-    'kapital','katalog','katalis','kelamin','kerajaan','kesturi',
-    'khasiat','kiblat','klimaks','koleksi','kompleks','konsensus',
-    'kontrak','kristal','kualitas','laboran','laminar','lateral',
-    'lawatan','lembaga','liberal','logistik','magnitudo','mandiri',
-    'manifesto','material','mediasi','melamin','memandu','menghibur',
-    'merkuri','metanol','mineral','misteri','modular','monitor',
-    'monumen','nasional','navigasi','negatif','nominal','normal',
-    'nukleus','obesitas','okulasi','olimpik','operasi','optimal',
-    'organik','orkestra','otoritas','padanan','palagan','pameran',
-    'panitia','paradoks','partikel','patriot','pedagog','penguin',
-    'pensiun','peptida','perangi','piramida','platina','politis',
-    'portabel','premium','problem','produksi','profesi','proaktif',
-    'promosi','protein','provinsi','pubertas','pusaran','radikal',
-    'rapuhnya','reaktor','refleks','resimen','relawan','repetisi',
-    'restorasi','revolusi','romantis','rotunda','saintifik','santunan',
-    'sarkasme','satelit','seksama','semangat','sensasi','sentris',
-    'sintetik','skenario','solidar','spektrum','stadium','stanton',
-    'strategi','substansi','surplus','suvenir','tabloid','taktis',
-    'telepon','templat','teorema','terbang','terminal','terang',
-    'titanik','topologi','tradisi','traktat','tribunal','tsunami',
-    'turbina','ultimatum','unggulan','utilitas','vaksin','vampir',
-    'vegetasi','ventilasi','virtual','vitamin','voluntir','warisan',
-    'xenofob','yuridis','zoologi',
+    'mutlak', 'ginjal', 'tangkas', 'kerani', 'alamiah', 'biduran',
+    'amanat', 'anggrek', 'ganjil', 'ramuan', 'perajin', 'idaman',
+    'kapang', 'bandara', 'barokah', 'berlian', 'bijaksana', 'bintang',
+    'bongkar', 'tanaman', 'budiman', 'cakrawala', 'catatan', 'cendana',
+    'centang', 'cerdas', 'ciptaan', 'dampak', 'daratan', 'peminjam',
+    'batasan', 'pelapukan', 'dermaga', 'dewata', 'wangsa', 'ijazah',
+    'tertib', 'senyap', 'semesta', 'dagang', 'galian', 'listrik',
+    'bukti', 'setempat', 'wabah', 'pajangan', 'jelmaan', 'pedoman',
+    'khayalan', 'gejala', 'serabut', 'rumusan', 'gemintang', 'benteng',
+    'gelagar', 'keturunan', 'kebumian', 'gerakan', 'ukuran', 'tingkatan',
+    'hunian', 'marmut', 'serasi', 'kedap', 'silangan', 'sejarah',
+    'getah', 'ibadah', 'haluan', 'impian', 'susuk', 'lumpuh',
+    'temuan', 'pemasangan', 'sungsang', 'setara', 'jagat', 'jaminan',
+    'jangkar', 'jejaring', 'raksasa', 'kacamata', 'hitungan', 'peserta',
+    'modal', 'daftar', 'pemicu', 'kelamin', 'kerajaan', 'kesturi',
+    'khasiat', 'kiblat', 'puncak', 'kumpulan', 'rumit', 'mufakat',
+    'perjanjian', 'hablur', 'bobot', 'petugas', 'aliran', 'samping',
+    'lawatan', 'lembaga', 'bebas', 'pasokan', 'besaran', 'mandiri',
+    'ikrar', 'bahan', 'penengah', 'piring', 'memandu', 'menghibur',
+    'raksa', 'cairan', 'tambang', 'rahasia', 'bagian', 'pantau',
+    'tugu', 'negara', 'kemudi', 'kurang', 'nilai', 'biasa',
+    'inti', 'tambun', 'cangkok', 'tanding', 'tindakan', 'terbaik',
+    'hayati', 'gamelan', 'wewenang', 'padanan', 'palagan', 'pameran',
+    'panitia', 'janggal', 'zarah', 'pejuang', 'pendidik', 'burung',
+    'purna', 'senyawa', 'perangi', 'limas', 'tembaga', 'siasat',
+    'jinjing', 'unggul', 'masalah', 'buatan', 'jabatan', 'gencar',
+    'sebar', 'gizi', 'daerah', 'remaja', 'pusaran', 'tuntas',
+    'rapuhnya', 'wadah', 'balas', 'satuan', 'relawan', 'ulangan',
+    'pemulihan', 'perubahan', 'mesra', 'kubah', 'ilmiah', 'santunan',
+    'sindiran', 'iringan', 'saksama', 'semangat', 'gempar', 'tengah',
+    'tiruan', 'naskah', 'kokoh', 'pantulan', 'tahap', 'sebutan',
+    'rencana', 'hakikat', 'untung', 'bingkisan', 'koran', 'cerdik',
+    'dering', 'contoh', 'dalil', 'terbang', 'pangkalan', 'terang',
+    'megah', 'bentuk', 'budaya', 'piagam', 'pengadilan', 'gelombang',
+    'baling', 'peringatan', 'unggulan', 'manfaat', 'penangkal', 'hantu',
+    'tumbuhan', 'lubang', 'maya', 'sari', 'sukarela', 'warisan',
+    'takut', 'hukum', 'hewan',
   ],
   expert: [
-    'abnormal','absolusi','adaptasi','advokasi','aerodinamika',
-    'akreditasi','algoritma','amplitudo','analogis','anggapan',
-    'anorganik','antariksa','antisipasi','apokalips','arsitektur',
-    'atmosfer','autentikasi','otomatis','biokimia','bioplasma',
-    'campuran','caturwulan','sentrifugal','deklarasi','demografi',
-    'dialektika','dimensional','diplomasi','diskursus','distribusi',
-    'ekosistem','eksekutif','eksperimen','ekstraksi','emansipasi',
-    'ensiklopedia','epidemiologi','eskalator','evaluator','evolusioner',
-    'fabrikasi','fasilitator','filosofis','fundamental','futuristik',
-    'geopolitik','globalisasi','gravitasi','harmonisasi','hemisfera',
-    'hipotesis','horizontal','identitas','ideologis','implikasi',
-    'indikator','infrastruktur','inisiatif','inovatif','inspirasi',
-    'integritas','interferensi','interpretasi','investigasi','invarian',
-    'yurisdiksi','kalkulasi','kapitalis','kategoris','keabadian',
-    'keberanian','kebijakan','kecerdasan','keharmonisan','keistimewaan',
-    'kekuasaan','kelaziman','kemandirian','kemiskinan','kemuliaan',
-    'kenikmatan','kepastian','kepemimpinan','keragamaan','kerjasama',
-    'kesehatan','ketahanan','ketimpangan','keunggulan','kompleksitas',
-    'komunikasi','konferensi','konservasi','kontemporer','kontribusi',
-    'koordinasi','kreativitas','kriminologi','kualitatif','kuantitatif',
-    'laboratorium','landasan','legitimasi','liberalis','literatur',
-    'magistrat','manifestasi','manipulasi','matrikulasi','mekanisme',
-    'melodrama','metabolisme','metodologi','militerisme','modernisasi',
-    'monumental','multikultural','musyawarah','nasionalisme','navigasi',
-    'netralisasi','nonfiksi','normalisasi','objektif','observasi',
-    'oktagonal','oligopoli','oportunis','ordinat','organisasi',
-    'orientasi','ortodoksi','panoramik','paradoksal','partisipasi',
-    'patologis','pedagogis','pengembangan','peradaban','performa',
-    'perimbangan','periodik','permanen','perspektif','pertimbangan',
-    'plagiarisme','pluralisme','politikus','potensial','pragmatis',
-    'prioritas','probabilitas','profesional','progresif','propaganda',
-    'prosedural','psikologi','publisitas','radiografi','rehabilitasi',
-    'relativitas','reputasi','restorasi','revolusioner','semantik',
-    'sentralisasi','signifikan','simpatik','sistematika','sosialisasi',
-    'spektakuler','stagnasi','standardisasi','statistik','struktur',
-    'substansial','supremasi','telekomunikasi','temporer','terintegrasi',
-    'terminologi','teritorial','tradisional','transformasi','transparan',
-    'ultimatum','universitas','urbanisasi','utilitas','validitas',
-    'verifikasi','virtuoso','visualisasi','vulkanologi','yurisprudensi',
+    'menyimpang', 'pengampunan', 'penyesuaian', 'pembelaan', 'hambatan',
+    'pengakuan', 'langkah', 'simpangan', 'kiasan', 'anggapan',
+    'benda', 'antariksa', 'persiapan', 'kiamat', 'bangunan',
+    'angkasa', 'pembuktian', 'sendiri', 'kehidupan', 'darah',
+    'campuran', 'caturwulan', 'putaran', 'maklumat', 'demografi',
+    'wicara', 'matra', 'hubungan', 'wacana', 'pembagian',
+    'jaringan', 'pelaksana', 'percobaan', 'pemerasan', 'persamaan',
+    'kamus', 'penyakit', 'tangga', 'penilai', 'berangsur',
+    'pembuatan', 'penyedia', 'mendalam', 'mendasar', 'canggih',
+    'kewilayahan', 'sejagat', 'tarikan', 'penyelarasan', 'belahan',
+    'dugaan', 'melintang', 'pengenal', 'keyakinan', 'akibat',
+    'petunjuk', 'prasarana', 'prakarsa', 'pembaru', 'gairah',
+    'kejujuran', 'gangguan', 'penafsiran', 'penyelidikan', 'tetap',
+    'peradilan', 'penaksiran', 'pemodal', 'tegas', 'keabadian',
+    'keberanian', 'kebijakan', 'kecerdasan', 'keharmonisan', 'keistimewaan',
+    'kekuasaan', 'kelaziman', 'kemandirian', 'kemiskinan', 'kemuliaan',
+    'kenikmatan', 'kepastian', 'kepemimpinan', 'keragamaan', 'kerjasama',
+    'kesehatan', 'ketahanan', 'ketimpangan', 'keunggulan', 'kerumitan',
+    'bincang', 'pertemuan', 'pelestarian', 'kekinian', 'sumbangan',
+    'penataan', 'rekaan', 'kejahatan', 'sifat', 'jumlah',
+    'bengkel', 'landasan', 'pengesahan', 'merdeka', 'pustaka',
+    'magistrat', 'perwujudan', 'rekayasa', 'penyetaraan', 'susunan',
+    'sandiwara', 'pencernaan', 'pengkajian', 'ketentaraan', 'pembaruan',
+    'monumental', 'kebinekaan', 'musyawarah', 'nasionalisme', 'navigasi',
+    'penawaran', 'nonfiksi', 'penormalan', 'adil', 'pengamatan',
+    'pojokan', 'persaingan', 'peluang', 'titik', 'perserikatan',
+    'pengenalan', 'ajaran', 'bentang', 'bertentangan', 'partisipasi',
+    'patologis', 'pengembangan', 'peradaban', 'kinerja',
+    'perimbangan', 'berkala', 'kekal', 'pandang', 'pertimbangan',
+    'penjiplakan', 'kemajemukan', 'negarawan', 'kemampuan', 'lugas',
+    'pilihan', 'kemungkinan', 'terlatih', 'pesat', 'hasutan',
+    'runtut', 'kebatinan', 'penyiaran', 'pemotretan', 'perbaikan',
+    'nisbi', 'martabat', 'pemulihan', 'perombak', 'arti',
+    'pemusatan', 'penting', 'peduli', 'keteraturan', 'pergaulan',
+    'menakjubkan', 'mandek', 'pembakuan', 'data', 'kerangka',
+    'berarti', 'kejayaan', 'penghubung', 'sementara', 'menyatu',
+    'istilah', 'kedaerahan', 'kuno', 'peralihan', 'bening',
+    'peringatan', 'perguruan', 'perpindahan', 'kegunaan', 'kesahihan',
+    'pemeriksaan', 'pakar', 'penggambaran', 'pegunungan', 'kehakiman',
   ],
 };
 
@@ -378,6 +377,15 @@ const UI_TEXT = {
     hp: 'HP',
     buffSlowmo: 'SLOW MOTION',
     buffDouble: 'DOUBLE SCORE',
+    buffBomb: 'BOMB!',
+    buffShield: 'SHIELD',
+    buffLaser: 'AUTO LASER',
+    paused: 'GAME PAUSED',
+    settings: 'SETTINGS',
+    language: 'LANGUAGE',
+    refreshRate: 'REFRESH RATE',
+    unlimited: 'UNLIMITED',
+    pressEscResume: '[ PRESS ESC/ENTER TO RESUME ]',
   },
   id: {
     score: 'SKOR',
@@ -397,6 +405,15 @@ const UI_TEXT = {
     hp: 'HP',
     buffSlowmo: 'GERAK LAMBAT',
     buffDouble: 'SKOR GANDA',
+    buffBomb: 'BOM!',
+    buffShield: 'PERISAI',
+    buffLaser: 'LASER OTOMATIS',
+    paused: 'PERMAINAN DIJEDA',
+    settings: 'PENGATURAN',
+    language: 'BAHASA',
+    refreshRate: 'REFRESH RATE',
+    unlimited: 'TAK TERBATAS',
+    pressEscResume: '[ TEKAN ESC/ENTER UNTUK LANJUT ]',
   },
 };
 
@@ -424,6 +441,9 @@ const CONFIG = {
 const BUFF_TYPES = [
   { id: 'slowmo', nameKey: 'buffSlowmo', color: '#00bfff' },
   { id: 'double', nameKey: 'buffDouble', color: '#ffd700' },
+  { id: 'bomb',   nameKey: 'buffBomb',   color: '#ff4400', instant: true },
+  { id: 'shield', nameKey: 'buffShield', color: '#00ff88', instant: true },
+  { id: 'laser',  nameKey: 'buffLaser',  color: '#cc44ff' },
 ];
 
 // ─── CANVAS SETUP ────────────────────────────────────────────
@@ -602,21 +622,24 @@ class Bullet {
 class Game {
   constructor() {
     // ── State ──
-    this.state = 'menu'; // 'menu' | 'playing' | 'gameover'
+    this.state = 'menu'; // 'menu' | 'playing' | 'gameover' | 'paused'
+
+    // ── Pause Menu Navigation ──
+    this.pauseMenuSelectedRow = 0; // 0: Language, 1: Refresh Rate, 2: Resume
 
     // ── Language (default English) ──
     this.language = 'en';
 
     // ── Core collections ──
-    this.entities  = [];
-    this.bullets   = [];
+    this.entities = [];
+    this.bullets = [];
     this.particles = [];
-    this.stars     = [];
+    this.stars = [];
 
     // ── Player ──
     this.playerX = 0;
     this.playerY = 0;
-    this.hearts  = CONFIG.PLAYER_DEFAULT_HEARTS;
+    this.hearts = CONFIG.PLAYER_DEFAULT_HEARTS;
 
     // ── Typing ──
     this.currentTarget = null;
@@ -630,6 +653,10 @@ class Game {
     // ── Buff ──
     this.activeBuff = null; // { id, name, color, timer }
 
+    // ── Shield (passive, not timed) ──
+    this.hasShield = false;
+    this.shieldFlashTimer = 0;
+
     // ── Spawning timers (accumulated ms) ──
     this.alienSpawnTimer = 0;
     this.luckySpawnTimer = 0;
@@ -640,6 +667,8 @@ class Game {
     this.currentFPS = 0;
     this.fpsFrameCount = 0;
     this.fpsAccumulator = 0;
+    this.fpsLimiterAccumulator = 0;
+    this.lastFPSCalculationTime = 0;
 
     // ── Delta time ──
     this.lastTimestamp = 0;
@@ -677,6 +706,8 @@ class Game {
     this.lastSpeedUpScore = 0;
     this.hearts = CONFIG.PLAYER_DEFAULT_HEARTS;
     this.activeBuff = null;
+    this.hasShield = false;
+    this.shieldFlashTimer = 0;
     this.alienSpawnTimer = 0;
     this.luckySpawnTimer = 0;
     this.heartSpawnTimer = 0;
@@ -685,6 +716,9 @@ class Game {
     this.gameTime = 0;
     this.playerX = canvas.width / 2;
     this.playerY = canvas.height - 70;
+    this.pauseMenuSelectedRow = 0;
+    this.fpsLimiterAccumulator = 0;
+    this.lastFPSCalculationTime = 0;
     this.state = 'playing';
   }
 
@@ -734,9 +768,9 @@ class Game {
   // ── EXPLOSION PARTICLES ────────────────────────────────────
   explode(x, y, type) {
     const colors = {
-      alien:   ['#ff3333', '#ff6600', '#ff9900', '#ffffff'],
+      alien: ['#ff3333', '#ff6600', '#ff9900', '#ffffff'],
       luckybox: ['#ffd700', '#ffaa00', '#fff5a0', '#ffffff'],
-      heart:   ['#ff69b4', '#ff1493', '#ffb6c1', '#ffffff'],
+      heart: ['#ff69b4', '#ff1493', '#ffb6c1', '#ffffff'],
     };
     const palette = colors[type] || colors.alien;
     const count = randInt(18, 30);
@@ -745,12 +779,74 @@ class Game {
     }
   }
 
+  setLanguage(lang) {
+    this.language = lang;
+
+    // Clear existing entities so new ones spawn in the correct language
+    if (this.currentTarget) {
+      this.currentTarget.isTargeted = false;
+      this.currentTarget = null;
+    }
+    this.entities = [];
+    this.alienSpawnTimer = 0;
+    this.luckySpawnTimer = 0;
+    this.heartSpawnTimer = 0;
+  }
+
+  setFPS(fps) {
+    this.targetFPS = fps;
+    // Reset timing to avoid big dt jump
+    this.lastTimestamp = 0;
+  }
+
   // ── INPUT HANDLING ─────────────────────────────────────────
   handleKeyDown(e) {
+    // ESC toggles play/pause state
+    if (e.key === 'Escape') {
+      if (this.state === 'playing') {
+        this.state = 'paused';
+        this.pauseMenuSelectedRow = 0;
+      } else if (this.state === 'paused') {
+        this.state = 'playing';
+      }
+      return;
+    }
+
     // Menu / Game Over: ENTER to start/restart
     if (this.state === 'menu' || this.state === 'gameover') {
       if (e.key === 'Enter') {
         this.reset();
+      }
+      return;
+    }
+
+    // Paused state menu navigation
+    if (this.state === 'paused') {
+      if (e.key === 'ArrowUp') {
+        this.pauseMenuSelectedRow = (this.pauseMenuSelectedRow - 1 + 3) % 3;
+      } else if (e.key === 'ArrowDown') {
+        this.pauseMenuSelectedRow = (this.pauseMenuSelectedRow + 1) % 3;
+      } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        if (this.pauseMenuSelectedRow === 0) {
+          // Toggle language
+          const newLang = this.language === 'en' ? 'id' : 'en';
+          this.setLanguage(newLang);
+        } else if (this.pauseMenuSelectedRow === 1) {
+          // Cycle FPS
+          const fpsOptions = [60, 120, 144, 0];
+          let idx = fpsOptions.indexOf(this.targetFPS);
+          if (idx === -1) idx = 0; // default 60
+          if (e.key === 'ArrowLeft') {
+            idx = (idx - 1 + fpsOptions.length) % fpsOptions.length;
+          } else {
+            idx = (idx + 1) % fpsOptions.length;
+          }
+          this.setFPS(fpsOptions[idx]);
+        }
+      } else if (e.key === 'Enter') {
+        if (this.pauseMenuSelectedRow === 2) {
+          this.state = 'playing';
+        }
       }
       return;
     }
@@ -761,12 +857,19 @@ class Game {
     // Only accept single alphabetic characters
     if (key.length !== 1 || key < 'A' || key > 'Z') return;
 
+    const hasLaser = this.activeBuff && this.activeBuff.id === 'laser';
+
     // ── If we have a locked target, continue typing that word ──
     if (this.currentTarget) {
       const nextChar = this.currentTarget.word[this.currentTarget.typedIndex];
       if (key === nextChar) {
         this.currentTarget.typedIndex++;
         AudioFX.playTyping();
+
+        // Laser buff: auto-complete the rest of the word
+        if (hasLaser) {
+          this.currentTarget.typedIndex = this.currentTarget.word.length;
+        }
 
         // Word fully typed → fire laser!
         if (this.currentTarget.typedIndex >= this.currentTarget.word.length) {
@@ -794,7 +897,12 @@ class Game {
     this.currentTarget = target;
     AudioFX.playTyping();
 
-    // If single-letter word (unlikely but safe)
+    // Laser buff: auto-complete the rest of the word on first letter
+    if (hasLaser) {
+      target.typedIndex = target.word.length;
+    }
+
+    // Word fully typed → fire laser!
     if (target.typedIndex >= target.word.length) {
       this.fireBullet(target);
       target.isTargeted = false;
@@ -824,15 +932,44 @@ class Game {
       // Grant a random buff, resolve name from current language
       const buffDef = BUFF_TYPES[randInt(0, BUFF_TYPES.length - 1)];
       const t = UI_TEXT[this.language];
-      this.activeBuff = {
-        id: buffDef.id,
-        name: t[buffDef.nameKey],
-        color: buffDef.color,
-        timer: CONFIG.BUFF_DURATION_MS / 1000,
-      };
-      AudioFX.playBuff();
-      this.flashColor = buffDef.color;
-      this.flashAlpha = 0.25;
+
+      if (buffDef.id === 'bomb') {
+        // ── BOMB: Instantly destroy all aliens on screen ──
+        for (let i = this.entities.length - 1; i >= 0; i--) {
+          const ent = this.entities[i];
+          if (ent.alive && ent.type === 'alien') {
+            ent.alive = false;
+            this.explode(ent.cx, ent.cy, 'alien');
+            let pts = CONFIG.SCORE_PER_ALIEN;
+            if (this.activeBuff && this.activeBuff.id === 'double') pts *= 2;
+            this.score += pts;
+            if (ent === this.currentTarget) this.currentTarget = null;
+          }
+        }
+        AudioFX.playExplosion();
+        this.shakeIntensity = 22;
+        this.flashColor = '#ff4400';
+        this.flashAlpha = 0.45;
+      }
+      else if (buffDef.id === 'shield') {
+        // ── SHIELD: Passive protection, lasts until used ──
+        this.hasShield = true;
+        AudioFX.playBuff();
+        this.flashColor = '#00ff88';
+        this.flashAlpha = 0.3;
+      }
+      else {
+        // ── Timed buffs (slowmo, double, laser) ──
+        this.activeBuff = {
+          id: buffDef.id,
+          name: t[buffDef.nameKey],
+          color: buffDef.color,
+          timer: CONFIG.BUFF_DURATION_MS / 1000,
+        };
+        AudioFX.playBuff();
+        this.flashColor = buffDef.color;
+        this.flashAlpha = 0.25;
+      }
     }
     else if (entity.type === 'heart') {
       if (this.hearts < CONFIG.PLAYER_MAX_HEARTS) {
@@ -859,6 +996,17 @@ class Game {
 
   // ── ALIEN REACHES BOTTOM → LOSE HEART ─────────────────────
   loseHeart() {
+    // ── Shield absorption: block the hit ──
+    if (this.hasShield) {
+      this.hasShield = false;
+      this.shieldFlashTimer = 1.0;
+      this.shakeIntensity = 8;
+      this.flashColor = '#00ff88';
+      this.flashAlpha = 0.3;
+      AudioFX.playBuff();
+      return; // No heart lost!
+    }
+
     this.hearts--;
     this.shakeIntensity = 14;
     this.flashColor = '#ff0000';
@@ -897,6 +1045,12 @@ class Game {
     if (this.activeBuff) {
       this.activeBuff.timer -= dt;
       if (this.activeBuff.timer <= 0) this.activeBuff = null;
+    }
+
+    // ── Shield flash decay ──
+    if (this.shieldFlashTimer > 0) {
+      this.shieldFlashTimer -= dt * 2;
+      if (this.shieldFlashTimer < 0) this.shieldFlashTimer = 0;
     }
 
     // ── Spawning timers ──
@@ -1026,13 +1180,14 @@ class Game {
     }
 
     // HUD (not affected by shake)
-    if (this.state === 'playing' || this.state === 'gameover') {
+    if (this.state === 'playing' || this.state === 'gameover' || this.state === 'paused') {
       this.renderHUD();
     }
 
     // State overlays
     if (this.state === 'menu') this.renderMenu();
     if (this.state === 'gameover') this.renderGameOver();
+    if (this.state === 'paused') this.renderPauseMenu();
   }
 
   // ── RENDER: Grid ───────────────────────────────────────────
@@ -1110,6 +1265,39 @@ class Game {
     ctx.fill();
 
     ctx.shadowBlur = 0;
+
+    // ── Shield visual (pulsing ring around ship) ──
+    if (this.hasShield) {
+      const shieldPulse = 0.6 + 0.4 * Math.sin(this.gameTime * 3);
+      const shieldRadius = s * 0.65;
+      ctx.beginPath();
+      ctx.arc(px, py, shieldRadius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.strokeStyle = `rgba(0, 255, 136, ${0.5 * shieldPulse})`;
+      ctx.lineWidth = 2.5;
+      ctx.shadowBlur = 18;
+      ctx.shadowColor = '#00ff88';
+      ctx.stroke();
+      // Inner fill glow
+      ctx.fillStyle = `rgba(0, 255, 136, ${0.06 * shieldPulse})`;
+      ctx.fill();
+      ctx.shadowBlur = 0;
+    }
+
+    // ── Shield break flash effect ──
+    if (this.shieldFlashTimer > 0) {
+      const t = this.shieldFlashTimer;
+      const breakRadius = s * 0.65 + (1 - t) * 40;
+      ctx.beginPath();
+      ctx.arc(px, py, breakRadius, 0, Math.PI * 2);
+      ctx.closePath();
+      ctx.strokeStyle = `rgba(0, 255, 136, ${t * 0.8})`;
+      ctx.lineWidth = 3 * t;
+      ctx.shadowBlur = 20 * t;
+      ctx.shadowColor = '#00ff88';
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+    }
   }
 
   // ── RENDER: Entity (Alien / LuckyBox / Heart) ──────────────
@@ -1126,7 +1314,7 @@ class Game {
 
     if (e.type === 'alien') {
       if (IMAGES.alien) {
-        ctx.drawImage(IMAGES.alien, cx - s/2, cy - s/2, s, s);
+        ctx.drawImage(IMAGES.alien, cx - s / 2, cy - s / 2, s, s);
       } else {
         // Neon red hexagon alien
         ctx.shadowBlur = 14;
@@ -1156,7 +1344,7 @@ class Game {
     }
     else if (e.type === 'luckybox') {
       if (IMAGES.lucky) {
-        ctx.drawImage(IMAGES.lucky, cx - s/2, cy - s/2, s, s);
+        ctx.drawImage(IMAGES.lucky, cx - s / 2, cy - s / 2, s, s);
       } else {
         // Neon gold rotating diamond/box
         const rotAngle = this.gameTime * 1.5;
@@ -1192,7 +1380,7 @@ class Game {
     }
     else if (e.type === 'heart') {
       if (IMAGES.heart) {
-        ctx.drawImage(IMAGES.heart, cx - s/2, cy - s/2, s, s);
+        ctx.drawImage(IMAGES.heart, cx - s / 2, cy - s / 2, s, s);
       } else {
         // Neon pink heart
         ctx.shadowBlur = 16;
@@ -1340,6 +1528,7 @@ class Game {
     this.renderHearts();
 
     // ── Active Buff indicator ──
+    let buffBarBottomY = pad + 10;
     if (this.activeBuff) {
       const bx = canvas.width / 2;
       const by = pad + 10;
@@ -1376,6 +1565,41 @@ class Game {
       ctx.fillRect(boxX + 2, boxY + bh - 5, (bw - 4) * progress, 3);
       ctx.globalAlpha = 1;
 
+      ctx.shadowBlur = 0;
+      buffBarBottomY = by + bh + 6;
+    }
+
+    // ── Shield passive indicator ──
+    if (this.hasShield) {
+      const bx = canvas.width / 2;
+      const by = buffBarBottomY;
+      const shieldLabel = this.t('buffShield');
+      const shieldText = `🛡 ${shieldLabel}`;
+      ctx.font = 'bold 14px "Orbitron", monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      const sw = ctx.measureText(shieldText).width + 28;
+      const sh = 28;
+      const sBoxX = bx - sw / 2;
+      const sBoxY = by;
+
+      // Background
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+      ctx.beginPath();
+      ctx.roundRect(sBoxX, sBoxY, sw, sh, 5);
+      ctx.fill();
+
+      // Border
+      const shieldPulse = 0.6 + 0.4 * Math.sin(this.gameTime * 3);
+      ctx.strokeStyle = `rgba(0, 255, 136, ${shieldPulse})`;
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#00ff88';
+      ctx.stroke();
+
+      // Text
+      ctx.fillStyle = `rgba(0, 255, 136, ${0.7 + 0.3 * shieldPulse})`;
+      ctx.fillText(shieldText, bx, sBoxY + sh / 2);
       ctx.shadowBlur = 0;
     }
   }
@@ -1443,7 +1667,7 @@ class Game {
 
     // Decorative line
     const lineW = 300;
-    const grad = ctx.createLinearGradient(cx - lineW/2, 0, cx + lineW/2, 0);
+    const grad = ctx.createLinearGradient(cx - lineW / 2, 0, cx + lineW / 2, 0);
     grad.addColorStop(0, 'transparent');
     grad.addColorStop(0.3, '#0ff');
     grad.addColorStop(0.7, '#ff3399');
@@ -1451,8 +1675,8 @@ class Game {
     ctx.strokeStyle = grad;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx - lineW/2, cy + 5);
-    ctx.lineTo(cx + lineW/2, cy + 5);
+    ctx.moveTo(cx - lineW / 2, cy + 5);
+    ctx.lineTo(cx + lineW / 2, cy + 5);
     ctx.stroke();
 
     // Instructions
@@ -1521,21 +1745,241 @@ class Game {
     ctx.shadowBlur = 0;
   }
 
+  renderPauseMenu() {
+    // Transparent dark overlay
+    ctx.fillStyle = 'rgba(5, 5, 15, 0.82)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+    const w = 520;
+    const h = 380;
+    const cardX = cx - w / 2;
+    const cardY = cy - h / 2;
+
+    // Card background
+    ctx.fillStyle = 'rgba(10, 10, 30, 0.92)';
+    ctx.beginPath();
+    ctx.roundRect(cardX, cardY, w, h, 12);
+    ctx.fill();
+
+    // Card border with neon cyan glow
+    ctx.strokeStyle = '#0ff';
+    ctx.lineWidth = 2.5;
+    ctx.shadowBlur = 20;
+    ctx.shadowColor = '#0ff';
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // Title: GAME PAUSED
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.font = 'bold 28px "Orbitron", sans-serif';
+    ctx.fillStyle = '#0ff';
+    ctx.shadowBlur = 15;
+    ctx.shadowColor = '#0ff';
+    ctx.fillText(this.t('paused'), cx, cardY + 50);
+    ctx.shadowBlur = 0;
+
+    // Divider Line
+    const grad = ctx.createLinearGradient(cx - 150, 0, cx + 150, 0);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(0.5, '#ff3399');
+    grad.addColorStop(1, 'transparent');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 150, cardY + 80);
+    ctx.lineTo(cx + 150, cardY + 80);
+    ctx.stroke();
+
+    // ── Row 0: Language Selection ──
+    const row0Focused = this.pauseMenuSelectedRow === 0;
+    ctx.font = 'bold 13px "Orbitron", monospace';
+    ctx.fillStyle = row0Focused ? '#ff3399' : '#888';
+    if (row0Focused) {
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = '#ff3399';
+    }
+    ctx.fillText(this.t('language'), cx, cardY + 115);
+    ctx.shadowBlur = 0;
+
+    // EN Button
+    const enSelected = this.language === 'en';
+    const enX = cx - 110;
+    const enY = cardY + 130;
+    ctx.beginPath();
+    ctx.roundRect(enX, enY, 100, 30, 5);
+    if (enSelected) {
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+      ctx.fill();
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#0ff';
+    } else {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = enSelected ? '#0ff' : '#fff';
+    ctx.font = 'bold 12px "Orbitron", monospace';
+    ctx.fillText('ENGLISH', cx - 60, cardY + 145);
+
+    // ID Button
+    const idSelected = this.language === 'id';
+    const idX = cx + 10;
+    const idY = cardY + 130;
+    ctx.beginPath();
+    ctx.roundRect(idX, idY, 100, 30, 5);
+    if (idSelected) {
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+      ctx.fill();
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#0ff';
+    } else {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = idSelected ? '#0ff' : '#fff';
+    ctx.fillText('INDONESIA', cx + 60, cardY + 145);
+
+    // ── Row 1: Refresh Rate (FPS) Selection ──
+    const row1Focused = this.pauseMenuSelectedRow === 1;
+    ctx.font = 'bold 13px "Orbitron", monospace';
+    ctx.fillStyle = row1Focused ? '#ff3399' : '#888';
+    if (row1Focused) {
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = '#ff3399';
+    }
+    ctx.fillText(this.t('refreshRate'), cx, cardY + 195);
+    ctx.shadowBlur = 0;
+
+    const fpsOptions = [60, 120, 144, 0];
+    const fpsLabels = ['60', '120', '144', this.t('unlimited')];
+    const btnW = 80;
+    const btnH = 30;
+    const gap = 14;
+    const totalW = fpsOptions.length * btnW + (fpsOptions.length - 1) * gap;
+    const startX = cx - totalW / 2;
+    const fpsY = cardY + 210;
+
+    for (let i = 0; i < fpsOptions.length; i++) {
+      const opt = fpsOptions[i];
+      const lbl = fpsLabels[i];
+      const selected = this.targetFPS === opt;
+      const x = startX + i * (btnW + gap);
+
+      ctx.beginPath();
+      ctx.roundRect(x, fpsY, btnW, btnH, 5);
+      if (selected) {
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+        ctx.fill();
+        ctx.strokeStyle = '#0ff';
+        ctx.lineWidth = 2;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = '#0ff';
+      } else {
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 1.5;
+      }
+      ctx.stroke();
+      ctx.shadowBlur = 0;
+
+      ctx.fillStyle = selected ? '#0ff' : '#fff';
+      ctx.font = 'bold 11px "Orbitron", monospace';
+      ctx.fillText(lbl, x + btnW / 2, fpsY + btnH / 2);
+    }
+
+    // ── Row 2: Resume Button ──
+    const row2Focused = this.pauseMenuSelectedRow === 2;
+    const resX = cx - 100;
+    const resY = cardY + 280;
+    const resW = 200;
+    const resH = 40;
+
+    ctx.beginPath();
+    ctx.roundRect(resX, resY, resW, resH, 6);
+    if (row2Focused) {
+      const pulse = 0.8 + 0.2 * Math.sin(performance.now() / 200);
+      ctx.fillStyle = `rgba(255, 51, 153, ${0.15 * pulse})`;
+      ctx.fill();
+      ctx.strokeStyle = '#ff3399';
+      ctx.lineWidth = 2.5;
+      ctx.shadowBlur = 12 * pulse;
+      ctx.shadowColor = '#ff3399';
+    } else {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.3)';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    ctx.font = 'bold 15px "Orbitron", sans-serif';
+    ctx.fillStyle = row2Focused ? '#ff3399' : '#fff';
+    ctx.fillText(this.t('resume'), cx, resY + resH / 2);
+
+    // ── Selector Indicator (Arrow next to rows for keyboard users) ──
+    ctx.fillStyle = '#ff3399';
+    ctx.font = 'bold 16px "Orbitron", sans-serif';
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#ff3399';
+    if (row0Focused) {
+      ctx.fillText('>', cx - 140, cardY + 145);
+    } else if (row1Focused) {
+      ctx.fillText('>', startX - 25, fpsY + btnH / 2);
+    } else if (row2Focused) {
+      ctx.fillText('>', cx - 125, resY + resH / 2);
+    }
+    ctx.shadowBlur = 0;
+
+    // ── Bottom Prompt ──
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
+    ctx.font = '11px "Share Tech Mono", monospace';
+    ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + 0.3 * pulse})`;
+    ctx.fillText(this.t('pressEscResume'), cx, cardY + 350);
+  }
+
   // ── GAME LOOP ──────────────────────────────────────────────
   gameLoop(timestamp) {
-    requestAnimationFrame((t) => this.gameLoop(t));
-
     // First frame init
     if (!this.lastTimestamp) {
       this.lastTimestamp = timestamp;
+      this.fpsFrameCount = 0;
+      this.fpsLimiterAccumulator = 0;
+      this.lastFPSCalculationTime = timestamp;
+      this.queueNextFrame();
       return;
     }
 
-    const elapsed = timestamp - this.lastTimestamp;
+    let elapsed = timestamp - this.lastTimestamp;
+    
+    // Safety check: reset if huge jump occurs (e.g. background tab)
+    if (elapsed > 200) {
+      this.lastTimestamp = timestamp;
+      elapsed = 0;
+    }
 
-    // FPS limiter: skip this frame if we haven't reached the target interval
+    // Precise FPS Limiter using fractional error accumulation
     if (this.targetFPS > 0) {
-      if (elapsed < 1000 / this.targetFPS) return;
+      this.fpsLimiterAccumulator += elapsed;
+      const targetInterval = 1000 / this.targetFPS;
+      // Allow minor sub-millisecond VSync jitter tolerance of 1.0ms
+      if (this.fpsLimiterAccumulator < targetInterval - 1.0) {
+        this.lastTimestamp = timestamp;
+        this.queueNextFrame();
+        return;
+      }
+      this.fpsLimiterAccumulator -= targetInterval;
+      // Prevent backlog accumulation
+      if (this.fpsLimiterAccumulator > targetInterval) {
+        this.fpsLimiterAccumulator = 0;
+      }
     }
 
     this.lastTimestamp = timestamp;
@@ -1543,13 +1987,13 @@ class Game {
     // Delta time in seconds, capped to prevent spiral of death
     const dt = Math.min(elapsed / 1000, 0.1);
 
-    // FPS calculation (rolling 1-second window)
+    // Precise FPS calculation based on actual browser elapsed time
     this.fpsFrameCount++;
-    this.fpsAccumulator += elapsed;
-    if (this.fpsAccumulator >= 1000) {
-      this.currentFPS = Math.round((this.fpsFrameCount * 1000) / this.fpsAccumulator);
+    const fpsElapsed = timestamp - this.lastFPSCalculationTime;
+    if (fpsElapsed >= 1000) {
+      this.currentFPS = Math.round((this.fpsFrameCount * 1000) / fpsElapsed);
       this.fpsFrameCount = 0;
-      this.fpsAccumulator = 0;
+      this.lastFPSCalculationTime = timestamp;
     }
 
     // Update game logic only when playing
@@ -1566,6 +2010,17 @@ class Game {
     }
 
     this.render();
+    this.queueNextFrame();
+  }
+
+  queueNextFrame() {
+    if (this.targetFPS === 0) {
+      // Unlimited: use setTimeout(..., 0) to uncap from monitor refresh rate (VSync)
+      setTimeout(() => this.gameLoop(performance.now()), 0);
+    } else {
+      // Limited: use requestAnimationFrame for VSync-synchronized visual updates
+      requestAnimationFrame((t) => this.gameLoop(t));
+    }
   }
 
   // ── START ──────────────────────────────────────────────────
@@ -1577,29 +2032,52 @@ class Game {
       this.handleKeyDown(e);
     });
 
-    // FPS selector
-    const fpsSelect = document.getElementById('fpsSelect');
-    fpsSelect.addEventListener('change', () => {
-      this.targetFPS = parseInt(fpsSelect.value, 10);
-      // Reset timing to avoid big dt jump
-      this.lastTimestamp = 0;
-    });
+    // Mouse click listener for pause menu settings
+    canvas.addEventListener('click', (e) => {
+      if (this.state !== 'paused') return;
 
-    // Language selector
-    const langSelect = document.getElementById('langSelect');
-    langSelect.addEventListener('change', () => {
-      this.language = langSelect.value;
-      // Clear existing entities so new ones spawn in the correct language
-      if (this.state === 'playing') {
-        // Release target lock
-        if (this.currentTarget) {
-          this.currentTarget.isTargeted = false;
-          this.currentTarget = null;
+      const rect = canvas.getBoundingClientRect();
+      const clickX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const clickY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+      const cx = canvas.width / 2;
+      const cy = canvas.height / 2;
+      const cardH = 380;
+      const cardY = cy - cardH / 2;
+
+      // Language Buttons (Row 0)
+      if (clickY >= cardY + 130 && clickY <= cardY + 160) {
+        if (clickX >= cx - 110 && clickX <= cx - 10) {
+          this.setLanguage('en');
+          this.pauseMenuSelectedRow = 0;
+        } else if (clickX >= cx + 10 && clickX <= cx + 110) {
+          this.setLanguage('id');
+          this.pauseMenuSelectedRow = 0;
         }
-        this.entities = [];
-        this.alienSpawnTimer = 0;
-        this.luckySpawnTimer = 0;
-        this.heartSpawnTimer = 0;
+      }
+
+      // FPS Buttons (Row 1)
+      if (clickY >= cardY + 210 && clickY <= cardY + 240) {
+        if (clickX >= cx - 181 && clickX <= cx - 101) {
+          this.setFPS(60);
+          this.pauseMenuSelectedRow = 1;
+        } else if (clickX >= cx - 87 && clickX <= cx - 7) {
+          this.setFPS(120);
+          this.pauseMenuSelectedRow = 1;
+        } else if (clickX >= cx + 7 && clickX <= cx + 87) {
+          this.setFPS(144);
+          this.pauseMenuSelectedRow = 1;
+        } else if (clickX >= cx + 101 && clickX <= cx + 181) {
+          this.setFPS(0);
+          this.pauseMenuSelectedRow = 1;
+        }
+      }
+
+      // Resume Button (Row 2)
+      if (clickY >= cardY + 280 && clickY <= cardY + 320) {
+        if (clickX >= cx - 100 && clickX <= cx + 100) {
+          this.state = 'playing';
+        }
       }
     });
 
