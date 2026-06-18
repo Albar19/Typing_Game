@@ -357,7 +357,6 @@ function getWordBanks(lang) {
   return lang === 'id' ? WORD_BANKS_ID : WORD_BANKS_EN;
 }
 
-// ─── UI TRANSLATIONS ─────────────────────────────────────────
 const UI_TEXT = {
   en: {
     score: 'SCORE',
@@ -386,10 +385,12 @@ const UI_TEXT = {
     refreshRate: 'REFRESH RATE',
     unlimited: 'UNLIMITED',
     pressEscResume: '[ PRESS ESC/ENTER TO RESUME ]',
+    typeHere: '[ TYPE WORD HERE ]',
+    resume: 'RESUME',
   },
   id: {
-    score: 'SKOR',
-    speed: 'KECPTN',
+    score: 'SCORE',
+    speed: 'SPEED',
     lvl: 'LVL',
     titleLine1: 'MENGETIK LUAR',
     titleLine2: 'ANGKASA',
@@ -412,8 +413,10 @@ const UI_TEXT = {
     settings: 'PENGATURAN',
     language: 'BAHASA',
     refreshRate: 'REFRESH RATE',
-    unlimited: 'TAK TERBATAS',
+    unlimited: 'UNLIMITED',
     pressEscResume: '[ TEKAN ESC/ENTER UNTUK LANJUT ]',
+    typeHere: '[ KETIK KATA DI SINI ]',
+    resume: 'LANJUTKAN',
   },
 };
 
@@ -426,9 +429,9 @@ const CONFIG = {
   BASE_ALIEN_SPAWN_MS: 2800,     // milliseconds
   LUCKY_BOX_SPAWN_MS: 12000,
   HEART_SPAWN_MS: 18000,
-  BUFF_DURATION_MS: 5000,
-  SPEED_UP_INTERVAL: 50,         // every N points
-  SPEED_UP_FACTOR: 1.15,         // multiplier per level
+  BUFF_DURATION_MS: 10000,
+  SPEED_UP_INTERVAL: 75,         // every N points
+  SPEED_UP_FACTOR: 1.08,         // multiplier per level
   SCORE_PER_ALIEN: 10,
   ENTITY_SIZE: 42,
   PLAYER_SIZE: 52,
@@ -650,6 +653,10 @@ class Game {
     this.speedLevel = 1;
     this.lastSpeedUpScore = 0;
 
+    // ── High Score ──
+    const savedHighScore = localStorage.getItem('typing_space_shooter_highscore');
+    this.highScore = savedHighScore ? parseInt(savedHighScore, 10) : 0;
+
     // ── Buff ──
     this.activeBuff = null; // { id, name, color, timer }
 
@@ -715,7 +722,7 @@ class Game {
     this.flashAlpha = 0;
     this.gameTime = 0;
     this.playerX = canvas.width / 2;
-    this.playerY = canvas.height - 70;
+    this.playerY = canvas.height - 135;
     this.pauseMenuSelectedRow = 0;
     this.fpsLimiterAccumulator = 0;
     this.lastFPSCalculationTime = 0;
@@ -724,9 +731,9 @@ class Game {
 
   // ── WORD SELECTION ─────────────────────────────────────────
   getDifficultyTier() {
-    if (this.score < 50) return 'easy';
-    if (this.score < 150) return 'medium';
-    if (this.score < 300) return 'hard';
+    if (this.score < 100) return 'easy';
+    if (this.score < 250) return 'medium';
+    if (this.score < 500) return 'hard';
     return 'expert';
   }
 
@@ -852,6 +859,15 @@ class Game {
     }
 
     if (this.state !== 'playing') return;
+
+    if (e.key === 'Backspace') {
+      if (this.currentTarget) {
+        this.currentTarget.isTargeted = false;
+        this.currentTarget.typedIndex = 0;
+        this.currentTarget = null;
+      }
+      return;
+    }
 
     const key = e.key.toUpperCase();
     // Only accept single alphabetic characters
@@ -989,7 +1005,7 @@ class Game {
     const interval = CONFIG.SPEED_UP_INTERVAL;
     while (this.score >= this.lastSpeedUpScore + interval) {
       this.lastSpeedUpScore += interval;
-      this.gameSpeed *= CONFIG.SPEED_UP_FACTOR;
+      this.gameSpeed = Math.min(this.gameSpeed * CONFIG.SPEED_UP_FACTOR, 2.0);
       this.speedLevel++;
     }
   }
@@ -1016,6 +1032,10 @@ class Game {
     if (this.hearts <= 0) {
       this.state = 'gameover';
       AudioFX.playGameOver();
+      if (this.score > this.highScore) {
+        this.highScore = this.score;
+        localStorage.setItem('typing_space_shooter_highscore', this.highScore);
+      }
     }
   }
 
@@ -1025,7 +1045,7 @@ class Game {
 
     // ── Update player position (tracks canvas center) ──
     this.playerX = canvas.width / 2;
-    this.playerY = canvas.height - 70;
+    this.playerY = canvas.height - 135;
 
     // ── Screen shake decay ──
     if (this.shakeIntensity > 0) {
@@ -1516,15 +1536,24 @@ class Game {
     // ── Top-left below score: Speed level ──
     ctx.font = '14px "Share Tech Mono", monospace';
     ctx.fillStyle = '#888';
-    ctx.fillText(`${this.t('speed')} ${this.gameSpeed.toFixed(2)}x  ·  ${this.t('lvl')} ${this.speedLevel}`, pad, pad + 64);
+    ctx.fillText(`${this.t('speed')}: ${this.gameSpeed.toFixed(2)}x`, pad, pad + 64);
+    ctx.fillText(`${this.t('lvl')}: ${this.speedLevel}`, pad, pad + 82);
 
-    // ── Top-right: FPS counter (below the dropdown) ──
+    // ── Top-right: High Score & FPS ──
     ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    ctx.font = 'bold 16px "Orbitron", monospace';
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = '#ffd700';
+    ctx.fillText(`HI-SCORE: ${this.highScore}`, canvas.width - pad, pad);
+    ctx.shadowBlur = 0;
+
     ctx.font = '13px "Share Tech Mono", monospace';
     ctx.fillStyle = this.currentFPS >= 50 ? '#39ff14' : this.currentFPS >= 25 ? '#ffd700' : '#ff3333';
-    ctx.fillText(`${this.currentFPS} FPS`, canvas.width - pad, pad + 56);
+    ctx.fillText(`${this.currentFPS} FPS`, canvas.width - pad, pad + 24);
 
-    // ── Bottom-center: Hearts ──
+    // ── Bottom-left: Hearts ──
     this.renderHearts();
 
     // ── Active Buff indicator ──
@@ -1602,20 +1631,24 @@ class Game {
       ctx.fillText(shieldText, bx, sBoxY + sh / 2);
       ctx.shadowBlur = 0;
     }
+
+    // ── Visual Typing Box ──
+    this.renderTypingBox();
   }
 
   // ── RENDER: Hearts (bottom center) ─────────────────────────
   renderHearts() {
-    const heartSize = 18;
-    const gap = 8;
-    const totalW = CONFIG.PLAYER_MAX_HEARTS * (heartSize * 2 + gap) - gap;
-    const startX = canvas.width / 2 - totalW / 2;
-    const y = canvas.height - 22;
+    const pad = 20;
+    const heartSize = 10;
+    const gap = 6;
+    const startX = pad;
+    const y = canvas.height - 20;
 
     ctx.font = '11px "Share Tech Mono", monospace';
-    ctx.textAlign = 'center';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'bottom';
     ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
-    ctx.fillText('HP', canvas.width / 2, y - heartSize - 6);
+    ctx.fillText('HP', startX, y - heartSize - 2);
 
     for (let i = 0; i < CONFIG.PLAYER_MAX_HEARTS; i++) {
       const hx = startX + i * (heartSize * 2 + gap) + heartSize;
@@ -1640,6 +1673,74 @@ class Game {
       ctx.stroke();
     }
     ctx.shadowBlur = 0;
+  }
+
+  renderTypingBox() {
+    const cx = canvas.width / 2;
+    const w = 360;
+    const h = 42;
+    const bx = cx - w / 2;
+    const by = canvas.height - 70;
+
+    // 1. Draw dashboard box background
+    ctx.fillStyle = 'rgba(10, 10, 25, 0.85)';
+    ctx.beginPath();
+    ctx.roundRect(bx, by, w, h, 6);
+    ctx.fill();
+
+    // 2. Draw border
+    const hasTarget = !!this.currentTarget;
+    if (hasTarget) {
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#0ff';
+    } else {
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.25)';
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 0;
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // 3. Draw content
+    ctx.textBaseline = 'middle';
+    if (!hasTarget) {
+      // Placeholder
+      ctx.font = '13px "Orbitron", monospace';
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.4)';
+      ctx.textAlign = 'center';
+      ctx.fillText(this.t('typeHere'), cx, by + h / 2);
+    } else {
+      // Active typing target
+      const word = this.currentTarget.word;
+      ctx.font = 'bold 20px "Share Tech Mono", monospace';
+      ctx.textAlign = 'center';
+      
+      const totalWidth = ctx.measureText(word).width;
+      let startX = cx - totalWidth / 2;
+
+      // Draw letters
+      for (let i = 0; i < word.length; i++) {
+        const ch = word[i];
+        const charW = ctx.measureText(ch).width;
+        
+        ctx.textAlign = 'left';
+        if (i < this.currentTarget.typedIndex) {
+          // Typed -> neon green with glow
+          ctx.fillStyle = '#39ff14';
+          ctx.shadowBlur = 8;
+          ctx.shadowColor = '#39ff14';
+        } else {
+          // Untyped -> white
+          ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+          ctx.shadowBlur = 0;
+        }
+        ctx.fillText(ch, startX, by + h / 2);
+        startX += charW;
+      }
+      ctx.shadowBlur = 0;
+    }
   }
 
   // ── RENDER: Menu Screen ────────────────────────────────────
