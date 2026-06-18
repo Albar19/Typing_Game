@@ -1,0 +1,1675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Vertical Typing Space Shooter - Type words to destroy aliens in this endless cyberpunk space shooter game.">
+  <title>Typing Space Shooter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #000;
+      overflow: hidden;
+      font-family: 'Orbitron', monospace;
+      cursor: default;
+      user-select: none;
+    }
+    canvas { display: block; }
+
+    /* Top-right control bar */
+    #controlBar {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .ctrl-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 0, 0, 0.6);
+      border: 1px solid rgba(0, 255, 255, 0.3);
+      border-radius: 6px;
+      padding: 6px 12px;
+      backdrop-filter: blur(4px);
+    }
+    .ctrl-group label {
+      color: rgba(0, 255, 255, 0.7);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1px;
+    }
+    .ctrl-select {
+      background: rgba(10, 10, 30, 0.9);
+      color: #0ff;
+      border: 1px solid rgba(0, 255, 255, 0.4);
+      border-radius: 4px;
+      padding: 4px 8px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+      outline: none;
+      cursor: pointer;
+    }
+    .ctrl-select:hover { border-color: #0ff; }
+    .ctrl-select option { background: #0a0a1e; color: #0ff; }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas"></canvas>
+
+  <!-- Top-right Control Bar -->
+  <div id="controlBar">
+    <div class="ctrl-group">
+      <label>LANG</label>
+      <select id="langSelect" class="ctrl-select">
+        <option value="en" selected>English</option>
+        <option value="id">Indonesia</option>
+      </select>
+    </div>
+    <div class="ctrl-group">
+      <label>TARGET FPS</label>
+      <select id="fpsSelect" class="ctrl-select">
+        <option value="30">30</option>
+        <option value="60" selected>60</option>
+        <option value="120">120</option>
+        <option value="144">144</option>
+        <option value="0">Unlimited</option>
+      </select>
+    </div>
+  </div>
+
+<script>
+// =============================================================
+//  VERTICAL TYPING SPACE SHOOTER
+//  Endless runner-style typing game with neon cyberpunk aesthetics
+// =============================================================
+
+// ─── ASSET CONFIGURATION ─────────────────────────────────────
+// Replace these empty strings with actual image URLs/paths.
+// If left empty, the game renders neon geometric fallbacks.
+const PLAYER_SPACESHIP_SRC = '';
+const ALIEN_ENEMY_SRC      = '';
+const LUCKY_BOX_SRC        = '';
+const HEART_SRC            = '';
+
+// Preload images only if paths are provided
+const IMAGES = {};
+function preloadImage(key, src) {
+  if (!src) return;
+  const img = new Image();
+  img.src = src;
+  img.onload = () => { IMAGES[key] = img; };
+}
+preloadImage('player', PLAYER_SPACESHIP_SRC);
+preloadImage('alien',  ALIEN_ENEMY_SRC);
+preloadImage('lucky',  LUCKY_BOX_SRC);
+preloadImage('heart',  HEART_SRC);
+
+// ─── AUDIO PLACEHOLDER SYSTEM ────────────────────────────────
+// Each method is a stub ready to be wired up with new Audio().
+const AudioFX = {
+  playTyping()    { /* new Audio('typing.mp3').play(); */ },
+  playLaser()     { /* new Audio('laser.mp3').play(); */ },
+  playExplosion() { /* new Audio('explosion.mp3').play(); */ },
+  playBuff()      { /* new Audio('buff.mp3').play(); */ },
+  playHeal()      { /* new Audio('heal.mp3').play(); */ },
+  playHit()       { /* new Audio('hit.mp3').play(); */ },
+  playGameOver()  { /* new Audio('gameover.mp3').play(); */ },
+};
+
+// ─── WORD BANKS (scaled by difficulty, per language) ─────────
+const WORD_BANKS_EN = {
+  easy: [
+    'ace','arm','bat','box','bug','cap','cow','cup','dew','dig',
+    'dot','dug','elk','end','fan','fig','fog','fun','gap','gem',
+    'gum','gut','hat','hex','hop','hub','ice','imp','ink','ion',
+    'ivy','jam','jar','jaw','jet','jig','jot','joy','jug','keg',
+    'key','kid','kit','lab','lap','law','leg','lid','lip','log',
+    'lot','lug','map','mat','mix','mob','mop','mud','mug','nap',
+    'net','nil','nod','nor','nut','oak','odd','oil','opt','orb',
+    'ore','owl','pad','paw','peg','pen','pig','pin','pit','pod',
+    'pot','pub','pun','rag','ram','ran','rap','rat','raw','red',
+    'rib','rid','rim','rip','rod','rot','row','rug','rum','run',
+    'rut','sap','sat','saw','set','sin','sip','sit','six','ski',
+    'sob','sod','sum','sun','tab','tag','tan','tap','tar','tax',
+    'ten','the','tie','tin','tip','toe','ton','top','tow','toy',
+    'tub','tug','two','urn','van','vat','vet','vow','wag','war',
+    'wax','web','wig','win','wit','wok','won','wry','yak','yam',
+    'yap','yaw','yep','yet','yew','zip','zoo',
+  ],
+  medium: [
+    'alpha','amber','anvil','armor','atlas','azure','basin','blast',
+    'blaze','blink','bloom','brain','brave','brick','brisk','cable',
+    'candy','cedar','chain','charm','chess','chill','china','civic',
+    'claim','clash','clear','cliff','climb','cloud','cobra','comet',
+    'coral','craft','crane','crash','crest','crown','crush','cubic',
+    'curve','dance','debug','delta','depth','disco','draft','drain',
+    'dream','drift','drone','dwarf','eagle','earth','elder','ember',
+    'enact','epoch','equal','equip','erupt','event','exile','expat',
+    'extra','fable','feast','fiber','flame','flare','flash','fleet',
+    'flint','float','flora','fluid','forge','forth','frost','gleam',
+    'globe','gloom','glyph','grain','grape','grasp','grind','guild',
+    'haven','hazel','helix','honor','hover','humid','hyper','ivory',
+    'jewel','joust','knack','kneel','kraft','lance','laser','latch',
+    'layer','level','light','llama','lodge','logic','lunar','lyric',
+    'magic','manor','maple','marsh','medal','mercy','metal','micro',
+    'mimic','minor','mocha','model','moral','mount','music','nerve',
+    'noble','north','novel','ocean','omega','onset','opera','optic',
+    'orbit','oxide','ozone','panic','patch','pearl','phase','piano',
+    'pilot','pixel','plank','plant','plaza','plumb','plume','polar',
+    'power','prawn','pride','prime','print','prism','prize','probe',
+    'proof','prose','proxy','pulse','quake','query','quest','quick',
+    'quota','radar','rapid','raven','realm','reign','relay','ridge',
+    'rival','robin','royal','rumba','saber','saint','salsa','scale',
+    'scout','serif','shark','shelf','shift','sigma','sleek','slice',
+    'slope','smart','smoke','snake','snare','solar','sonic','south',
+    'space','spark','spawn','spear','spice','spike','spine','spoke',
+    'squad','stack','staff','stage','stain','stake','stale','stamp',
+    'stand','stark','steam','steel','steep','steer','stern','still',
+    'stock','stoic','stone','storm','stout','stove','strap','straw',
+    'strip','stump','super','surge','swamp','sweep','swift','sword',
+    'talon','tempo','tiger','token','topaz','total','tower','trace',
+    'track','trade','trail','train','trait','trend','triad','trial',
+    'trick','trine','troop','truce','trunk','trust','tulip','turbo',
+    'tweed','twist','ultra','umbra','unify','unity','until','upper',
+    'urban','usher','utter','vague','valve','vault','vigor','vinyl',
+    'viper','virus','visor','vista','vital','vivid','vocal','voice',
+    'voter','vowel','watch','water','wheat','whirl','wield','witch',
+    'world','wound','wrath','yacht','yield','youth','zebra','zonal',
+  ],
+  hard: [
+    'alchemy','android','anomaly','apostle','archive','arsenal',
+    'balance','banshee','battery','beacon','blanket','blazing',
+    'blister','booster','capsule','cardiac','cascade','celsius',
+    'chamber','channel','chapter','chariot','chimera','circuit',
+    'cluster','coaster','cockpit','compile','complex','console',
+    'contest','control','convert','crystal','current','crusade',
+    'cyclone','datalog','decibel','decrypt','defense','destiny',
+    'diamond','digital','discord','display','distort','dolphin',
+    'dynasty','eclipse','element','embargo','encrypt','entropy',
+    'episode','erosion','exploit','extract','falafel','fallout',
+    'fantasy','fiction','firefly','fission','flannel','flexion',
+    'formula','fortune','freight','furnace','gadget','galahad',
+    'gateway','genesis','glacier','granite','gravity','griffin',
+    'habitat','halcyon','handoff','harmony','harvest','heretic',
+    'hexagon','holster','horizon','hostile','hydrant','hypnotic',
+    'iceberg','igniter','illusion','imaging','implant','impulse',
+    'inferno','insight','install','ionizer','javelin','jigsaw',
+    'journal','jubilee','justice','ketchup','kingdom','kinetic',
+    'kitchen','lantern','lattice','leather','liberty','lighten',
+    'lockout','maestro','magnate','mandala','martial','masking',
+    'maximum','mercury','militia','mineral','mission','mixture',
+    'modular','monitor','monsoon','monster','morning','mystery',
+    'nebula','neptune','network','neutron','nitrate','nuclear',
+    'nucleus','nullify','obelisk','obscure','optimal','organic',
+    'origami','outpost','overdub','ovation','oxidize','package',
+    'paddock','paradox','passage','patriot','payload','penalty',
+    'pension','peptide','phantom','pilgrim','planner','plastic',
+    'platoon','plunder','polygon','popcorn','precept','presage',
+    'problem','procure','prodigy','profile','project','protect',
+    'protest','protons','provoke','pyramid','quantum','quarrel',
+    'radical','rampart','reactor','rebound','recital','refract',
+    'refugee','remnant','require','resolve','revolve','ripcord',
+    'runtime','rupture','salvage','scandal','scarlet','scatter',
+    'scourge','segment','shelter','shuttle','silicon','sinuous',
+    'skeptic','society','solvent','species','stadium','stealth',
+    'storage','stratum','subject','subsidy','sunrise','surplus',
+    'suspend','symbiont','synapse','tabloid','takeoff','tempest',
+    'theorem','therapy','thermal','thunder','topiary','torpedo',
+    'torsion','tracker','trading','transit','trigger','tropics',
+    'tsunami','turbine','tweaker','twister','unicorn','uniform',
+    'unleash','uranium','utility','vaccine','vagrant','vanguard',
+    'venture','verdict','version','vertigo','veteran','villain',
+    'vintage','voltage','vortex','vulture','warhead','warrior',
+    'whisker','whistle','widgeon','wildcat','witness','wrangle',
+    'xchange','yielded','zealous','zephyr','zenith',
+  ],
+  expert: [
+    'absolute','abstract','accuracy','advanced','advisory',
+    'advocate','aircraft','alchemic','alliance','almanack',
+    'ambiance','amusedly','analysis','ancestor','antidote',
+    'aperture','aquarium','artifice','assassin','backbone',
+    'bacteria','ballroom','bankrupt','biomorph','blackout',
+    'blizzard','boundary','bracelet','broadest','bulkhead',
+    'calendar','campaign','capsicum','cardinal','catalyst',
+    'category','cerebral','champion','chapters','checkbox',
+    'chromium','claymore','cliffhanger','cockerel','collider',
+    'comeback','compiler','compound','computer','concrete',
+    'conquest','contract','controls','copyhold','corridor',
+    'crossbow','crucible','cultural','currency','cyberpunk',
+    'database','deadline','debugger','decimate','defender',
+    'diagnose','dialogue','diplomat','discount','dispatch',
+    'dividend','doctrine','document','dominant','dominion',
+    'doorstep','download','dreadful','dropship','dynamite',
+    'eclipsed','eighteen','electron','eloquent','embedded',
+    'emigrant','emphatic','encoding','endpoint','enforced',
+    'engulfed','enormous','envelope','equation','equipped',
+    'espresso','eternity','evaluate','eventful','evidence',
+    'exchange','excludes','exercise','expedite','explorer',
+    'external','extremes','fabulous','facedown','failsafe',
+    'familiar','fastball','featured','feedback','filename',
+    'finalize','finished','firmware','flagship','flashgun',
+    'flexible','folklore','footstep','forecast','forensic',
+    'fragment','freefall','frequent','frontier','fullback',
+    'function','futility','gatepost','genocide','gigabyte',
+    'gladiola','globetrotter','glossary','graphene','greenery',
+    'gridlock','guardian','guidance','gunsmith','gyratory',
+    'halftime','handbook','handmade','handover','hardcore',
+    'hardware','harmonic','headband','headline','helpline',
+    'heritage','highrise','hologram','homeland','horseman',
+    'hospital','humanoid','huntsman','hydrogen','hysteria',
+    'icebound','ignition','illusive','imagined','immunity',
+    'imperial','incident','indulged','industry','infrared',
+    'inherent','injector','innocent','inscribe','insignia',
+    'integral','interact','interior','interval','invasion',
+    'invented','invoking','iodizing','isolated','issuing',
+    'jailbird','jamboree','japanese','jettison','judgment',
+    'junction','keepsake','keyboard','khaki','knockout',
+    'labeling','lambchop','landmark','language','latitude',
+    'lavender','layabout','leapfrog','leverage','licensed',
+    'lifelong','ligature','limiting','linkable','literacy',
+    'lockdown','longhand','luminous','magnetic','mainland',
+    'majestic','manifest','maritime','mastered','matchbox',
+    'maximise','mechanic','medicine','membrane','memorial',
+    'merchant','metadata','milepost','minimize','minority',
+    'modifier','moisture','molecule','momentum','monopoly',
+    'monument','mortgage','multiply','mustache','mutation',
+    'navigate','notebook','nucleus','numerous','obituary',
+    'obligate','obstacle','occupied','offshoot','onscreen',
+    'operated','opponent','opposing','optimise','optional',
+    'organism','original','orthodox','outbreak','outreach',
+    'overcome','overhead','overload','overlord','overtake',
+    'paradigm','parallel','paranoid','particle','passport',
+    'patience','peculiar','pendulum','pentagon','perceive',
+    'persists','personal','petition','pipeline','platform',
+    'playback','pleasure','polished','populist','portable',
+    'position','positive','powerful','preclude','predator',
+    'preserve','pressure','presumed','proceeds','producer',
+    'profound','progress','prohibit','prologue','promptly',
+    'properly','proposal','prospect','protocol','provider',
+    'publicly','pullback','punitive','purchase','pursuant',
+    'puzzling','quadrant','quantify','quantity','question',
+    'quotient',
+  ],
+};
+
+// ─── INDONESIAN WORD BANKS ───────────────────────────────────
+const WORD_BANKS_ID = {
+  easy: [
+    'abu','ada','air','aku','api','apa','ara','asa','ban','bak',
+    'bau','bab','bed','bel','bis','bom','bor','bos','bui','bun',
+    'bus','cap','cat','dam','dan','dom','doa','dua','ego','era',
+    'flu','gas','gel','gua','hak','hal','hari','hot','hub','iga',
+    'ibu','ini','itu','jab','jam','jaz','jet','jin','jip','jok',
+    'jus','kap','kas','kat','kol','kon','kos','kot','kue','kur',
+    'lab','lap','las','lob','log','lot','luk','mal','mau','mak',
+    'mas','mat','mie','mol','nol','nya','oke','ora','pam','pak',
+    'pan','pas','per','pin','pir','pot','pun','rak','ram','ras',
+    'rel','rem','rob','rok','rom','roh','rum','rut','sah','sak',
+    'sal','sap','sel','set','sol','sum','sus','tam','teh','tik',
+    'tim','tol','top','tua','tuk','ubi','uji','vas','wol','zat',
+  ],
+  medium: [
+    'abjad','absen','acing','acuan','adegan','agama','ahli',
+    'ajaib','akses','aktif','alami','album','altar','ambil',
+    'ancam','andal','angka','angin','antar','apung','arena',
+    'arsip','atlas','awasi','bakat','bakar','bambu','bantu',
+    'baris','batas','batin','bayar','bedah','bekal','belah',
+    'benar','berit','bijak','bilas','bisik','buang','buaya',
+    'budak','bukit','bully','bumbu','bunga','buruk','cabai',
+    'cacat','caduk','cagar','calon','cameo','catat','cekik',
+    'celah','cepat','cipta','corak','cuaca','cubit','cucuk',
+    'curah','dafni','damai','debat','dekat','delta','demam',
+    'derap','desas','dewan','didik','dinas','domba','dunia',
+    'dusin','eksak','ember','emosi','empat','endap','enjin',
+    'error','fajar','fatal','fauna','fiber','figur','final',
+    'flora','fokus','forum','fosil','gagas','galak','garuk',
+    'gelar','gempa','genap','gerak','gigit','gosip','grasi',
+    'habis','halal','harap','harga','hebat','hemat','hibah',
+    'hijau','hilir','hutan','ideal','iklan','ilham','imaji',
+    'indah','input','jahat','jarak','jatuh','jelas','jenis',
+    'jeruk','jihad','jilid','juluk','juruk','kabar','kabel',
+    'kacau','kadar','kados','kalah','kamar','kasur','kecil',
+    'kejar','keras','kilat','klaim','kobar','kopra','krisi',
+    'kubis','kulit','kumis','kursi','lahan','lapar','layak',
+    'lebah','lemah','licik','limit','logam','lokal','lomba',
+    'lunak','lungs','mahal','mahir','makan','makin','malah',
+    'manuk','marak','marga','merah','milik','mimpi','mirip',
+    'misil','mobil','model','mogok','moral','motif','mulia',
+    'mulut','mulus','mural','murni','nakal','napas','nasib',
+    'nekat','nikah','nomor','norma','nulis','nyala','oasis',
+    'obral','organ','paham','paksa','panas','panel','papan',
+    'pasar','pecah','pedas','peluk','perak','pergi','pesan',
+    'petak','pilar','polah','prima','prosa','puasa','pucat',
+    'radar','rajin','rapat','redam','renah','resah','resmi',
+    'robek','rohim','rubah','ruang','sabuk','sains','sakit',
+    'saldo','salut','samar','saraf','sebab','semak','sibuk',
+    'siram','sisir','solar','sulit','sulur','surat','tabir',
+    'tajam','taman','tanah','tapak','tekad','telur','tenar',
+    'terka','tidak','tiket','timah','tinta','tokoh','topan',
+    'tujuh','tumor','tunas','tusuk','udara','ukuir','ulang',
+    'ultim','utama','valas','virus','vocal','wajah','warna',
+    'wasit','yakni','yogya','yuran','zakar','zaman','zebra',
+  ],
+  hard: [
+    'absolut','adrenal','akrobat','akuntir','alamiah','alergin',
+    'amandir','anggrek','anomali','apoteka','artisan','aspirat',
+    'bakteri','bandara','barokah','berlian','bijakan','bintang',
+    'bongkar','botanik','budiman','cakrawl','catatan','cendana',
+    'centang','cerdasa','ciptaan','dampaki','daratan','debitur',
+    'definir','dekompo','dermaga','dewatai','dinasti','diploma',
+    'disipln','dormant','ekologi','ekonomi','ekskavr','elektro',
+    'empiris','endogen','epidemi','etalase','evolusi','falsafa',
+    'fantasi','fenomen','filenam','formula','galaksi','garnisn',
+    'gelagar','genetik','geologi','gerakan','gigabit','gradasi',
+    'habitat','hamster','harmoni','hermetk','hibrida','historr',
+    'hormon','ibadaha','ideolog','imajini','implant','impoten',
+    'inovasi','instalr','inversi','isoterm','jagad','jaminan',
+    'jangkar','jejarin','jupiter','kacamta','kalkuli','kandidr',
+    'kapital','katalog','katulis','kelamin','kerajaa','kestanr',
+    'khasiat','kiblati','klimaks','koleksi','komplek','konsens',
+    'kontrak','kristal','kualiti','laborat','laminar','lateral',
+    'lawatan','lembaga','liberai','logisti','magnitu','mandiri',
+    'manifestr','materia','mediasi','melamin','memandu','menghbr',
+    'merkuri','metanol','mineral','misteri','modular','monitor',
+    'monumen','nasiona','navigas','negativ','nominal','normal',
+    'nukleus','obesita','okulasi','olimpik','operasi','optimal',
+    'organis','orkestr','otorita','padanan','palagan','pameran',
+    'panikir','paradok','partisl','patriot','pedagog','penguin',
+    'pensium','peptida','perangi','piramid','platina','politis',
+    'portofo','premium','problem','produks','profesi','proklam',
+    'promosi','protein','provins','puberta','pusaran','radikal',
+    'rapidir','reaktor','refleks','rejimen','relawan','repetis',
+    'restora','revolus','romanti','rotunda','saintif','santuni',
+    'sarkasm','satelit','seksama','semangr','sensasi','sentris',
+    'sintetk','skeleta','solidar','spektru','stadium','stanton',
+    'strateg','substan','surplus','suvenir','tabloid','taktisr',
+    'telepon','templat','teorema','terbang','termina','terrain',
+    'titanik','topolog','tradisi','traktat','tribuna','tsunami',
+    'turbina','ultimat','ungguln','utilits','vakumir','vampira',
+    'vegetan','ventila','virtual','vitamin','voluntr','warisan',
+    'xenofob','yuridis','zeniths',
+  ],
+  expert: [
+    'abnormal','absolusi','adaptasi','advokasr','aerodinam',
+    'akreditr','algoritma','amplituda','analogis','anggapan',
+    'anorganik','antariksa','antisipat','apokalips','arsitektr',
+    'atmosfera','autentika','automatis','biokimia','bioplasma',
+    'campuran','caturwuln','centrifug','deklarasi','demografi',
+    'dialektik','dimensional','diplomasi','diskursus','distribut',
+    'ekosistem','eksekutif','eksperima','ekstraksi','emansipas',
+    'ensiklop','epidemiol','eskalator','evaluator','evolusion',
+    'fabrikasi','fasilitsr','filosofis','fundamental','futuristk',
+    'geopolitk','globalisr','gravitasi','harmonisr','hemisfera',
+    'hipotesis','horizontal','identitas','ideologis','implikasi',
+    'indikator','infrastrk','inisiatif','inovatifr','inspirasi',
+    'integritsr','interferr','interpret','investigr','invincblr',
+    'jurisdiks','kalkulasi','kapitalis','kategoris','keambisin',
+    'keberanin','kebijakan','kecerdasan','keharmons','keistimwn',
+    'kekuasaan','kelaziman','kemandirir','kemiskinan','kemuliaan',
+    'kenikmatn','kepastian','kepemimpn','keragamaan','kerjasama',
+    'kesehatan','ketahanan','ketimpngn','keungguln','komplekss',
+    'komunikas','konferensi','konservasi','kontempor','kontribsi',
+    'koordinas','kreativts','kriminolg','kualitatf','kuantitat',
+    'laborator','landalsan','legitimsi','liberalis','literatur',
+    'magistrat','manifestr','manipulas','matrikulr','mekanisme',
+    'melodrama','metabolis','metodolog','militeris','modernisr',
+    'monumental','multikulr','musyawarh','nasionali','navigasir',
+    'neutralis','nonfiksin','normalisr','objektifr','observasi',
+    'oktagonal','oligopoli','oportunis','ordinansi','organisas',
+    'orientasi','ortodoksi','panoramik','paradoksl','partisipr',
+    'patologis','pedagogis','pengembnr','peradaban','performan',
+    'perimbngn','periodik','permanenr','persepktf','pertimbnr',
+    'plagiarsr','pluralism','politikus','potensial','pragmatis',
+    'prioritas','probabilt','profesion','progesivr','propaganda',
+    'prosedurl','psikologr','publisist','radiograf','rehabilit',
+    'relatifsr','reputasir','restorasi','revolusio','semantikr',
+    'sentralis','signifkan','simpatikr','sistematk','sosialisr',
+    'spektakul','stagnasir','standardr','statistik','strukturr',
+    'substansr','supremasi','telekomun','temporerr','terintgrr',
+    'terminolg','territolr','tradisionl','transformr','transparn',
+    'ultimatum','universit','urbanisas','utilitasr','validitas',
+    'verifikas','virtuosit','visualisr','vulnerabl','yurisprud',
+  ],
+};
+
+// ─── LANGUAGE-AWARE WORD BANK GETTER ─────────────────────────
+function getWordBanks(lang) {
+  return lang === 'id' ? WORD_BANKS_ID : WORD_BANKS_EN;
+}
+
+// ─── UI TRANSLATIONS ─────────────────────────────────────────
+const UI_TEXT = {
+  en: {
+    score: 'SCORE',
+    speed: 'SPEED',
+    lvl: 'LVL',
+    titleLine1: 'TYPING SPACE',
+    titleLine2: 'SHOOTER',
+    instruction1: 'Type the words above enemies to destroy them',
+    instruction2: 'Collect Lucky Boxes for buffs & Hearts for HP',
+    pressStart: '[ PRESS ENTER TO START ]',
+    version: 'v1.1 — ENDLESS MODE',
+    gameOver: 'GAME OVER',
+    finalScore: 'FINAL SCORE',
+    maxSpeed: 'MAX SPEED',
+    level: 'LEVEL',
+    pressRestart: '[ PRESS ENTER TO RESTART ]',
+    hp: 'HP',
+    buffSlowmo: 'SLOW MOTION',
+    buffDouble: 'DOUBLE SCORE',
+  },
+  id: {
+    score: 'SKOR',
+    speed: 'KECPTN',
+    lvl: 'LVL',
+    titleLine1: 'MENGETIK LUAR',
+    titleLine2: 'ANGKASA',
+    instruction1: 'Ketik kata di atas musuh untuk menghancurkannya',
+    instruction2: 'Kumpulkan Kotak Buff & Hati untuk HP',
+    pressStart: '[ TEKAN ENTER UNTUK MULAI ]',
+    version: 'v1.1 — MODE TAK TERBATAS',
+    gameOver: 'PERMAINAN BERAKHIR',
+    finalScore: 'SKOR AKHIR',
+    maxSpeed: 'KECEPATAN MAKS',
+    level: 'LEVEL',
+    pressRestart: '[ TEKAN ENTER UNTUK ULANG ]',
+    hp: 'HP',
+    buffSlowmo: 'GERAK LAMBAT',
+    buffDouble: 'SKOR GANDA',
+  },
+};
+
+// ─── GAME CONFIGURATION ─────────────────────────────────────
+const CONFIG = {
+  PLAYER_DEFAULT_HEARTS: 3,
+  PLAYER_MAX_HEARTS: 5,
+  BASE_FALL_SPEED: 70,           // pixels per second
+  BULLET_SPEED: 1000,            // pixels per second
+  BASE_ALIEN_SPAWN_MS: 2800,     // milliseconds
+  LUCKY_BOX_SPAWN_MS: 12000,
+  HEART_SPAWN_MS: 18000,
+  BUFF_DURATION_MS: 5000,
+  SPEED_UP_INTERVAL: 50,         // every N points
+  SPEED_UP_FACTOR: 1.15,         // multiplier per level
+  SCORE_PER_ALIEN: 10,
+  ENTITY_SIZE: 42,
+  PLAYER_SIZE: 52,
+  MAX_PARTICLES: 200,
+  STAR_COUNT: 120,
+};
+
+// ─── BUFF DEFINITIONS ────────────────────────────────────────
+// Names are resolved at runtime from UI_TEXT based on current language
+const BUFF_TYPES = [
+  { id: 'slowmo', nameKey: 'buffSlowmo', color: '#00bfff' },
+  { id: 'double', nameKey: 'buffDouble', color: '#ffd700' },
+];
+
+// ─── CANVAS SETUP ────────────────────────────────────────────
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+}
+resizeCanvas();
+window.addEventListener('resize', resizeCanvas);
+
+// ─── UTILITY FUNCTIONS ──────────────────────────────────────
+function randInt(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function randFloat(min, max) { return Math.random() * (max - min) + min; }
+function clamp(val, min, max) { return Math.max(min, Math.min(max, val)); }
+function lerp(a, b, t) { return a + (b - a) * t; }
+function dist(x1, y1, x2, y2) { return Math.hypot(x2 - x1, y2 - y1); }
+
+/** Draw a heart shape centered at (cx, cy) */
+function drawHeartShape(cx, cy, size) {
+  const w = size, h = size;
+  ctx.beginPath();
+  ctx.moveTo(cx, cy - h * 0.15);
+  ctx.bezierCurveTo(cx, cy - h * 0.55, cx - w * 0.55, cy - h * 0.55, cx - w * 0.55, cy - h * 0.15);
+  ctx.bezierCurveTo(cx - w * 0.55, cy + h * 0.15, cx, cy + h * 0.35, cx, cy + h * 0.55);
+  ctx.bezierCurveTo(cx, cy + h * 0.35, cx + w * 0.55, cy + h * 0.15, cx + w * 0.55, cy - h * 0.15);
+  ctx.bezierCurveTo(cx + w * 0.55, cy - h * 0.55, cx, cy - h * 0.55, cx, cy - h * 0.15);
+  ctx.closePath();
+}
+
+// ─── STAR (BACKGROUND PARALLAX) ─────────────────────────────
+class Star {
+  constructor() { this.reset(true); }
+  reset(randomY = false) {
+    this.x = Math.random() * canvas.width;
+    this.y = randomY ? Math.random() * canvas.height : -2;
+    this.size = randFloat(0.5, 2.5);
+    this.speed = this.size * 18 + 8; // bigger = faster
+    this.opacity = randFloat(0.3, 0.9);
+    this.twinkleSpeed = randFloat(1.5, 4);
+    this.twinklePhase = Math.random() * Math.PI * 2;
+  }
+  update(dt) {
+    this.y += this.speed * dt;
+    this.twinklePhase += this.twinkleSpeed * dt;
+    if (this.y > canvas.height + 5) this.reset(false);
+  }
+  render(time) {
+    const alpha = this.opacity * (0.6 + 0.4 * Math.sin(this.twinklePhase));
+    ctx.fillStyle = `rgba(200, 220, 255, ${alpha})`;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+    ctx.fill();
+  }
+}
+
+// ─── PARTICLE (EXPLOSION EFFECTS) ──────────────────────────
+class Particle {
+  constructor(x, y, color) {
+    this.x = x;
+    this.y = y;
+    this.vx = (Math.random() - 0.5) * 300;
+    this.vy = (Math.random() - 0.5) * 300;
+    this.life = 1.0;
+    this.decay = randFloat(0.8, 2.5);
+    this.color = color;
+    this.size = randFloat(1.5, 5);
+  }
+  update(dt) {
+    this.x += this.vx * dt;
+    this.y += this.vy * dt;
+    this.vx *= (1 - 1.5 * dt); // drag
+    this.vy *= (1 - 1.5 * dt);
+    this.life -= this.decay * dt;
+  }
+  render() {
+    if (this.life <= 0) return;
+    ctx.globalAlpha = this.life;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = this.color;
+    ctx.fillStyle = this.color;
+    ctx.beginPath();
+    ctx.arc(this.x, this.y, this.size * this.life, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ─── ENTITY (Alien, Lucky Box, Heart) ────────────────────────
+class Entity {
+  constructor(type, x, word) {
+    this.type = type;         // 'alien' | 'luckybox' | 'heart'
+    this.x = x;
+    this.y = -50;
+    this.word = word.toUpperCase();
+    this.typedIndex = 0;      // how many letters typed
+    this.isTargeted = false;
+    this.alive = true;
+    this.spawnTime = performance.now();
+    this.size = CONFIG.ENTITY_SIZE;
+    // Pulsing animation phase
+    this.pulsePhase = Math.random() * Math.PI * 2;
+  }
+  /** Get center X/Y of this entity */
+  get cx() { return this.x; }
+  get cy() { return this.y; }
+}
+
+// ─── BULLET (Laser projectile) ──────────────────────────────
+class Bullet {
+  constructor(startX, startY, target) {
+    this.x = startX;
+    this.y = startY;
+    this.target = target;
+    this.speed = CONFIG.BULLET_SPEED;
+    this.alive = true;
+    this.trail = []; // stores past positions for trail effect
+  }
+  update(dt) {
+    // Store trail point
+    this.trail.push({ x: this.x, y: this.y, life: 1 });
+    if (this.trail.length > 12) this.trail.shift();
+
+    // Move toward target entity
+    const tx = this.target.cx;
+    const ty = this.target.cy;
+    const dx = tx - this.x;
+    const dy = ty - this.y;
+    const d = Math.hypot(dx, dy);
+
+    if (d < 18) return true; // HIT
+
+    const move = this.speed * dt;
+    this.x += (dx / d) * move;
+    this.y += (dy / d) * move;
+
+    // Decay trail
+    for (const t of this.trail) t.life -= 3 * dt;
+
+    return false;
+  }
+  render() {
+    // Draw trail
+    for (const t of this.trail) {
+      if (t.life <= 0) continue;
+      ctx.globalAlpha = t.life * 0.5;
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#0ff';
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(t.x, t.y);
+      ctx.lineTo(t.x, t.y + 8);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 1;
+    // Draw bullet head
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = '#0ff';
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(this.x, this.y - 8);
+    ctx.lineTo(this.x, this.y + 8);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+  }
+}
+
+// =============================================================
+//  MAIN GAME CLASS
+// =============================================================
+class Game {
+  constructor() {
+    // ── State ──
+    this.state = 'menu'; // 'menu' | 'playing' | 'gameover'
+
+    // ── Language (default English) ──
+    this.language = 'en';
+
+    // ── Core collections ──
+    this.entities  = [];
+    this.bullets   = [];
+    this.particles = [];
+    this.stars     = [];
+
+    // ── Player ──
+    this.playerX = 0;
+    this.playerY = 0;
+    this.hearts  = CONFIG.PLAYER_DEFAULT_HEARTS;
+
+    // ── Typing ──
+    this.currentTarget = null;
+
+    // ── Score & Progression ──
+    this.score = 0;
+    this.gameSpeed = 1.0;
+    this.speedLevel = 1;
+    this.lastSpeedUpScore = 0;
+
+    // ── Buff ──
+    this.activeBuff = null; // { id, name, color, timer }
+
+    // ── Spawning timers (accumulated ms) ──
+    this.alienSpawnTimer = 0;
+    this.luckySpawnTimer = 0;
+    this.heartSpawnTimer = 0;
+
+    // ── FPS tracking ──
+    this.targetFPS = 60;
+    this.currentFPS = 0;
+    this.fpsFrameCount = 0;
+    this.fpsAccumulator = 0;
+
+    // ── Delta time ──
+    this.lastTimestamp = 0;
+
+    // ── Screen shake ──
+    this.shakeIntensity = 0;
+    this.shakeX = 0;
+    this.shakeY = 0;
+
+    // ── Flash overlay ──
+    this.flashAlpha = 0;
+    this.flashColor = '#ff0000';
+
+    // ── Game time (for animations) ──
+    this.gameTime = 0;
+
+    // ── Init stars ──
+    for (let i = 0; i < CONFIG.STAR_COUNT; i++) {
+      this.stars.push(new Star());
+    }
+
+    // ── Scanline offset (cosmetic) ──
+    this.scanlineOffset = 0;
+  }
+
+  // ── RESET / START ──────────────────────────────────────────
+  reset() {
+    this.entities = [];
+    this.bullets = [];
+    this.particles = [];
+    this.currentTarget = null;
+    this.score = 0;
+    this.gameSpeed = 1.0;
+    this.speedLevel = 1;
+    this.lastSpeedUpScore = 0;
+    this.hearts = CONFIG.PLAYER_DEFAULT_HEARTS;
+    this.activeBuff = null;
+    this.alienSpawnTimer = 0;
+    this.luckySpawnTimer = 0;
+    this.heartSpawnTimer = 0;
+    this.shakeIntensity = 0;
+    this.flashAlpha = 0;
+    this.gameTime = 0;
+    this.playerX = canvas.width / 2;
+    this.playerY = canvas.height - 70;
+    this.state = 'playing';
+  }
+
+  // ── WORD SELECTION ─────────────────────────────────────────
+  getDifficultyTier() {
+    if (this.score < 50) return 'easy';
+    if (this.score < 150) return 'medium';
+    if (this.score < 300) return 'hard';
+    return 'expert';
+  }
+
+  /** Get a word, optionally one tier harder for special items.
+   *  Uses the word bank matching the current language. */
+  getWord(isSpecial = false) {
+    let tier = this.getDifficultyTier();
+    if (isSpecial) {
+      const order = ['easy', 'medium', 'hard', 'expert'];
+      const idx = order.indexOf(tier);
+      tier = order[Math.min(idx + 1, order.length - 1)];
+    }
+    const banks = getWordBanks(this.language);
+    const pool = banks[tier];
+    // Avoid duplicates with currently active entities
+    const activeWords = new Set(this.entities.map(e => e.word));
+    const activeFirstLetters = new Set(this.entities.map(e => e.word[0]));
+
+    // Prefer words with unique first letters
+    let candidates = pool.filter(w => !activeWords.has(w.toUpperCase()) && !activeFirstLetters.has(w[0].toUpperCase()));
+    if (candidates.length === 0) {
+      candidates = pool.filter(w => !activeWords.has(w.toUpperCase()));
+    }
+    if (candidates.length === 0) candidates = pool;
+
+    return candidates[randInt(0, candidates.length - 1)];
+  }
+
+  // ── SPAWNING ───────────────────────────────────────────────
+  spawnEntity(type) {
+    const isSpecial = (type !== 'alien');
+    const word = this.getWord(isSpecial);
+    const padding = 60;
+    const x = randInt(padding, canvas.width - padding);
+    const entity = new Entity(type, x, word);
+    this.entities.push(entity);
+  }
+
+  // ── EXPLOSION PARTICLES ────────────────────────────────────
+  explode(x, y, type) {
+    const colors = {
+      alien:   ['#ff3333', '#ff6600', '#ff9900', '#ffffff'],
+      luckybox: ['#ffd700', '#ffaa00', '#fff5a0', '#ffffff'],
+      heart:   ['#ff69b4', '#ff1493', '#ffb6c1', '#ffffff'],
+    };
+    const palette = colors[type] || colors.alien;
+    const count = randInt(18, 30);
+    for (let i = 0; i < count && this.particles.length < CONFIG.MAX_PARTICLES; i++) {
+      this.particles.push(new Particle(x, y, palette[randInt(0, palette.length - 1)]));
+    }
+  }
+
+  // ── INPUT HANDLING ─────────────────────────────────────────
+  handleKeyDown(e) {
+    // Menu / Game Over: ENTER to start/restart
+    if (this.state === 'menu' || this.state === 'gameover') {
+      if (e.key === 'Enter') {
+        this.reset();
+      }
+      return;
+    }
+
+    if (this.state !== 'playing') return;
+
+    const key = e.key.toUpperCase();
+    // Only accept single alphabetic characters
+    if (key.length !== 1 || key < 'A' || key > 'Z') return;
+
+    // ── If we have a locked target, continue typing that word ──
+    if (this.currentTarget) {
+      const nextChar = this.currentTarget.word[this.currentTarget.typedIndex];
+      if (key === nextChar) {
+        this.currentTarget.typedIndex++;
+        AudioFX.playTyping();
+
+        // Word fully typed → fire laser!
+        if (this.currentTarget.typedIndex >= this.currentTarget.word.length) {
+          this.fireBullet(this.currentTarget);
+          this.currentTarget.isTargeted = false;
+          this.currentTarget = null;
+        }
+      }
+      // Wrong key while locked: simply ignore (forgiving)
+      return;
+    }
+
+    // ── No target locked: find best matching entity ──
+    // Filter entities whose next untyped letter matches the key
+    const matches = this.entities.filter(e =>
+      e.alive && e.typedIndex === 0 && e.word[0] === key
+    );
+    if (matches.length === 0) return;
+
+    // Pick the one closest to the bottom (most urgent)
+    matches.sort((a, b) => b.y - a.y);
+    const target = matches[0];
+    target.isTargeted = true;
+    target.typedIndex = 1;
+    this.currentTarget = target;
+    AudioFX.playTyping();
+
+    // If single-letter word (unlikely but safe)
+    if (target.typedIndex >= target.word.length) {
+      this.fireBullet(target);
+      target.isTargeted = false;
+      this.currentTarget = null;
+    }
+  }
+
+  fireBullet(target) {
+    this.bullets.push(new Bullet(this.playerX, this.playerY - CONFIG.PLAYER_SIZE / 2, target));
+    AudioFX.playLaser();
+  }
+
+  // ── HANDLE ENTITY HIT (bullet reached target) ─────────────
+  handleHit(entity) {
+    entity.alive = false;
+    this.explode(entity.cx, entity.cy, entity.type);
+
+    if (entity.type === 'alien') {
+      let pts = CONFIG.SCORE_PER_ALIEN;
+      if (this.activeBuff && this.activeBuff.id === 'double') pts *= 2;
+      this.score += pts;
+      AudioFX.playExplosion();
+    }
+    else if (entity.type === 'luckybox') {
+      // Grant a random buff, resolve name from current language
+      const buffDef = BUFF_TYPES[randInt(0, BUFF_TYPES.length - 1)];
+      const t = UI_TEXT[this.language];
+      this.activeBuff = {
+        id: buffDef.id,
+        name: t[buffDef.nameKey],
+        color: buffDef.color,
+        timer: CONFIG.BUFF_DURATION_MS / 1000,
+      };
+      AudioFX.playBuff();
+      this.flashColor = buffDef.color;
+      this.flashAlpha = 0.25;
+    }
+    else if (entity.type === 'heart') {
+      if (this.hearts < CONFIG.PLAYER_MAX_HEARTS) {
+        this.hearts++;
+      }
+      AudioFX.playHeal();
+      this.flashColor = '#ff69b4';
+      this.flashAlpha = 0.2;
+    }
+
+    // Check speed progression
+    this.checkSpeedUp();
+  }
+
+  // ── SPEED PROGRESSION ──────────────────────────────────────
+  checkSpeedUp() {
+    const interval = CONFIG.SPEED_UP_INTERVAL;
+    while (this.score >= this.lastSpeedUpScore + interval) {
+      this.lastSpeedUpScore += interval;
+      this.gameSpeed *= CONFIG.SPEED_UP_FACTOR;
+      this.speedLevel++;
+    }
+  }
+
+  // ── ALIEN REACHES BOTTOM → LOSE HEART ─────────────────────
+  loseHeart() {
+    this.hearts--;
+    this.shakeIntensity = 14;
+    this.flashColor = '#ff0000';
+    this.flashAlpha = 0.35;
+    AudioFX.playHit();
+
+    if (this.hearts <= 0) {
+      this.state = 'gameover';
+      AudioFX.playGameOver();
+    }
+  }
+
+  // ── MAIN UPDATE (dt in seconds) ────────────────────────────
+  update(dt) {
+    this.gameTime += dt;
+
+    // ── Update player position (tracks canvas center) ──
+    this.playerX = canvas.width / 2;
+    this.playerY = canvas.height - 70;
+
+    // ── Screen shake decay ──
+    if (this.shakeIntensity > 0) {
+      this.shakeX = (Math.random() - 0.5) * this.shakeIntensity;
+      this.shakeY = (Math.random() - 0.5) * this.shakeIntensity;
+      this.shakeIntensity *= Math.pow(0.05, dt); // rapid decay
+      if (this.shakeIntensity < 0.3) { this.shakeIntensity = 0; this.shakeX = 0; this.shakeY = 0; }
+    }
+
+    // ── Flash overlay decay ──
+    if (this.flashAlpha > 0) {
+      this.flashAlpha -= dt * 1.2;
+      if (this.flashAlpha < 0) this.flashAlpha = 0;
+    }
+
+    // ── Buff timer ──
+    if (this.activeBuff) {
+      this.activeBuff.timer -= dt;
+      if (this.activeBuff.timer <= 0) this.activeBuff = null;
+    }
+
+    // ── Spawning timers ──
+    const dtMs = dt * 1000;
+    this.alienSpawnTimer += dtMs;
+    this.luckySpawnTimer += dtMs;
+    this.heartSpawnTimer += dtMs;
+
+    // Alien spawn (interval decreases with gameSpeed)
+    const alienInterval = CONFIG.BASE_ALIEN_SPAWN_MS / this.gameSpeed;
+    if (this.alienSpawnTimer >= alienInterval) {
+      this.alienSpawnTimer -= alienInterval;
+      this.spawnEntity('alien');
+    }
+    // Lucky Box spawn (fixed rate, not sped up)
+    if (this.luckySpawnTimer >= CONFIG.LUCKY_BOX_SPAWN_MS) {
+      this.luckySpawnTimer -= CONFIG.LUCKY_BOX_SPAWN_MS;
+      this.spawnEntity('luckybox');
+    }
+    // Heart spawn (fixed rate)
+    if (this.heartSpawnTimer >= CONFIG.HEART_SPAWN_MS) {
+      this.heartSpawnTimer -= CONFIG.HEART_SPAWN_MS;
+      this.spawnEntity('heart');
+    }
+
+    // ── Update entities ──
+    const slowMultiplier = (this.activeBuff && this.activeBuff.id === 'slowmo') ? 0.4 : 1.0;
+    for (let i = this.entities.length - 1; i >= 0; i--) {
+      const e = this.entities[i];
+      if (!e.alive) { this.entities.splice(i, 1); continue; }
+
+      // Fall speed (special items slightly slower)
+      let speedMod = (e.type === 'alien') ? 1.0 : 0.7;
+      e.y += CONFIG.BASE_FALL_SPEED * this.gameSpeed * speedMod * slowMultiplier * dt;
+
+      // Pulse animation
+      e.pulsePhase += 3 * dt;
+
+      // Reached bottom?
+      if (e.y > canvas.height + 20) {
+        // Release target lock if this was the current target
+        if (e === this.currentTarget) { this.currentTarget = null; }
+
+        if (e.type === 'alien') {
+          this.loseHeart();
+        }
+        // Lucky Box & Heart just disappear – no penalty
+        this.entities.splice(i, 1);
+      }
+    }
+
+    // ── Update bullets ──
+    for (let i = this.bullets.length - 1; i >= 0; i--) {
+      const b = this.bullets[i];
+      const hit = b.update(dt);
+      if (hit) {
+        this.handleHit(b.target);
+        this.bullets.splice(i, 1);
+      } else if (!b.target.alive) {
+        // Target already dead (edge case)
+        this.bullets.splice(i, 1);
+      }
+    }
+
+    // ── Update particles ──
+    for (let i = this.particles.length - 1; i >= 0; i--) {
+      this.particles[i].update(dt);
+      if (this.particles[i].life <= 0) this.particles.splice(i, 1);
+    }
+
+    // ── Update stars ──
+    for (const star of this.stars) star.update(dt);
+
+    // ── Scanline cosmetic ──
+    this.scanlineOffset = (this.scanlineOffset + 30 * dt) % 4;
+  }
+
+  // ── RENDER ─────────────────────────────────────────────────
+  render() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    // Background
+    ctx.fillStyle = '#0a0a12';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Apply screen shake
+    ctx.save();
+    ctx.translate(this.shakeX, this.shakeY);
+
+    // Stars
+    for (const star of this.stars) star.render(this.gameTime);
+
+    // Subtle grid lines (cyberpunk vibe)
+    this.renderGrid();
+
+    if (this.state === 'playing' || this.state === 'gameover') {
+      // Entities
+      for (const e of this.entities) this.renderEntity(e);
+
+      // Bullets
+      for (const b of this.bullets) b.render();
+
+      // Particles
+      for (const p of this.particles) p.render();
+
+      // Player
+      this.renderPlayer();
+    }
+
+    ctx.restore(); // end screen shake
+
+    // Scanlines overlay (very subtle)
+    this.renderScanlines();
+
+    // Flash overlay
+    if (this.flashAlpha > 0) {
+      ctx.fillStyle = this.flashColor;
+      ctx.globalAlpha = this.flashAlpha;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.globalAlpha = 1;
+    }
+
+    // HUD (not affected by shake)
+    if (this.state === 'playing' || this.state === 'gameover') {
+      this.renderHUD();
+    }
+
+    // State overlays
+    if (this.state === 'menu') this.renderMenu();
+    if (this.state === 'gameover') this.renderGameOver();
+  }
+
+  // ── RENDER: Grid ───────────────────────────────────────────
+  renderGrid() {
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.03)';
+    ctx.lineWidth = 1;
+    const gridSize = 80;
+    for (let x = 0; x < canvas.width; x += gridSize) {
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
+    }
+    for (let y = 0; y < canvas.height; y += gridSize) {
+      ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(canvas.width, y); ctx.stroke();
+    }
+  }
+
+  // ── RENDER: Scanlines ──────────────────────────────────────
+  renderScanlines() {
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.06)';
+    for (let y = this.scanlineOffset; y < canvas.height; y += 4) {
+      ctx.fillRect(0, y, canvas.width, 2);
+    }
+  }
+
+  // ── RENDER: Player Ship ────────────────────────────────────
+  renderPlayer() {
+    const px = this.playerX;
+    const py = this.playerY;
+    const s = CONFIG.PLAYER_SIZE;
+
+    if (IMAGES.player) {
+      ctx.drawImage(IMAGES.player, px - s / 2, py - s / 2, s, s);
+      return;
+    }
+
+    // Fallback: Neon cyan triangle ship
+    const pulse = 0.85 + 0.15 * Math.sin(this.gameTime * 4);
+
+    // Engine glow
+    ctx.shadowBlur = 25;
+    ctx.shadowColor = '#0ff';
+    ctx.fillStyle = `rgba(0, 255, 255, ${0.2 * pulse})`;
+    ctx.beginPath();
+    ctx.moveTo(px - s * 0.25, py + s * 0.3);
+    ctx.lineTo(px, py + s * 0.6);
+    ctx.lineTo(px + s * 0.25, py + s * 0.3);
+    ctx.closePath();
+    ctx.fill();
+
+    // Main body
+    ctx.shadowBlur = 18;
+    ctx.shadowColor = '#0ff';
+    ctx.strokeStyle = `rgba(0, 255, 255, ${pulse})`;
+    ctx.lineWidth = 2.5;
+    ctx.fillStyle = 'rgba(0, 30, 50, 0.8)';
+
+    ctx.beginPath();
+    ctx.moveTo(px, py - s * 0.5);           // top
+    ctx.lineTo(px - s * 0.38, py + s * 0.3); // bottom left
+    ctx.lineTo(px - s * 0.12, py + s * 0.2); // inner left
+    ctx.lineTo(px, py + s * 0.35);            // bottom center
+    ctx.lineTo(px + s * 0.12, py + s * 0.2); // inner right
+    ctx.lineTo(px + s * 0.38, py + s * 0.3); // bottom right
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Cockpit (small diamond)
+    ctx.fillStyle = `rgba(0, 255, 255, ${0.5 + 0.3 * pulse})`;
+    ctx.beginPath();
+    ctx.moveTo(px, py - s * 0.2);
+    ctx.lineTo(px - s * 0.08, py);
+    ctx.lineTo(px, py + s * 0.1);
+    ctx.lineTo(px + s * 0.08, py);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.shadowBlur = 0;
+  }
+
+  // ── RENDER: Entity (Alien / LuckyBox / Heart) ──────────────
+  renderEntity(e) {
+    const s = e.size;
+    const pulse = 0.8 + 0.2 * Math.sin(e.pulsePhase);
+    const cx = e.cx;
+    const cy = e.cy;
+
+    // Targeting reticle if locked
+    if (e.isTargeted) {
+      this.renderTargetReticle(cx, cy, s);
+    }
+
+    if (e.type === 'alien') {
+      if (IMAGES.alien) {
+        ctx.drawImage(IMAGES.alien, cx - s/2, cy - s/2, s, s);
+      } else {
+        // Neon red hexagon alien
+        ctx.shadowBlur = 14;
+        ctx.shadowColor = '#ff3333';
+        ctx.strokeStyle = `rgba(255, 50, 50, ${pulse})`;
+        ctx.fillStyle = 'rgba(80, 10, 10, 0.7)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        for (let i = 0; i < 6; i++) {
+          const angle = (Math.PI / 3) * i - Math.PI / 6;
+          const hx = cx + (s * 0.45) * Math.cos(angle);
+          const hy = cy + (s * 0.45) * Math.sin(angle);
+          if (i === 0) ctx.moveTo(hx, hy);
+          else ctx.lineTo(hx, hy);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Alien "eye"
+        ctx.fillStyle = `rgba(255, 80, 80, ${pulse})`;
+        ctx.beginPath();
+        ctx.arc(cx, cy, s * 0.12, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+      }
+    }
+    else if (e.type === 'luckybox') {
+      if (IMAGES.lucky) {
+        ctx.drawImage(IMAGES.lucky, cx - s/2, cy - s/2, s, s);
+      } else {
+        // Neon gold rotating diamond/box
+        const rotAngle = this.gameTime * 1.5;
+        ctx.save();
+        ctx.translate(cx, cy);
+        ctx.rotate(rotAngle);
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = '#ffd700';
+        ctx.strokeStyle = `rgba(255, 215, 0, ${pulse})`;
+        ctx.fillStyle = 'rgba(80, 60, 0, 0.6)';
+        ctx.lineWidth = 2.5;
+        const hs = s * 0.38;
+        ctx.beginPath();
+        ctx.moveTo(0, -hs);
+        ctx.lineTo(hs, 0);
+        ctx.lineTo(0, hs);
+        ctx.lineTo(-hs, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+
+        // Inner star
+        ctx.strokeStyle = `rgba(255, 255, 150, ${0.5 * pulse})`;
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.moveTo(0, -hs * 0.5); ctx.lineTo(0, hs * 0.5);
+        ctx.moveTo(-hs * 0.5, 0); ctx.lineTo(hs * 0.5, 0);
+        ctx.stroke();
+
+        ctx.shadowBlur = 0;
+        ctx.restore();
+      }
+    }
+    else if (e.type === 'heart') {
+      if (IMAGES.heart) {
+        ctx.drawImage(IMAGES.heart, cx - s/2, cy - s/2, s, s);
+      } else {
+        // Neon pink heart
+        ctx.shadowBlur = 16;
+        ctx.shadowColor = '#ff69b4';
+        ctx.strokeStyle = `rgba(255, 105, 180, ${pulse})`;
+        ctx.fillStyle = 'rgba(100, 20, 50, 0.6)';
+        ctx.lineWidth = 2;
+        drawHeartShape(cx, cy, s * 0.45);
+        ctx.fill();
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+      }
+    }
+
+    // ── Word label above entity ──
+    this.renderWordLabel(e);
+  }
+
+  // ── RENDER: Target Reticle ─────────────────────────────────
+  renderTargetReticle(cx, cy, size) {
+    const r = size * 0.7;
+    const angle = this.gameTime * 2;
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(angle);
+    ctx.strokeStyle = 'rgba(0, 255, 255, 0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.shadowBlur = 8;
+    ctx.shadowColor = '#0ff';
+
+    // Draw 4 corner brackets
+    for (let i = 0; i < 4; i++) {
+      ctx.save();
+      ctx.rotate((Math.PI / 2) * i);
+      ctx.beginPath();
+      ctx.moveTo(r, r * 0.4);
+      ctx.lineTo(r, r);
+      ctx.lineTo(r * 0.4, r);
+      ctx.stroke();
+      ctx.restore();
+    }
+
+    ctx.shadowBlur = 0;
+    ctx.restore();
+  }
+
+  // ── RENDER: Word Label ─────────────────────────────────────
+  renderWordLabel(e) {
+    const word = e.word;
+    const fontSize = 16;
+    ctx.font = `bold ${fontSize}px 'Share Tech Mono', monospace`;
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'bottom';
+
+    const labelY = e.cy - e.size * 0.55 - 8;
+
+    // Background pill for readability
+    const textWidth = ctx.measureText(word).width;
+    const pillPadX = 8, pillPadY = 4;
+    const pillX = e.cx - textWidth / 2 - pillPadX;
+    const pillY = labelY - fontSize - pillPadY;
+    const pillW = textWidth + pillPadX * 2;
+    const pillH = fontSize + pillPadY * 2;
+
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.65)';
+    ctx.beginPath();
+    ctx.roundRect(pillX, pillY, pillW, pillH, 4);
+    ctx.fill();
+
+    // If targeted, add a border to the pill
+    if (e.isTargeted) {
+      ctx.strokeStyle = 'rgba(0, 255, 255, 0.5)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    // Render each letter
+    const totalWidth = ctx.measureText(word).width;
+    let startX = e.cx - totalWidth / 2;
+
+    for (let i = 0; i < word.length; i++) {
+      const ch = word[i];
+      const charW = ctx.measureText(ch).width;
+
+      if (i < e.typedIndex) {
+        // Already typed → neon green
+        ctx.fillStyle = '#39ff14';
+        ctx.shadowBlur = 6;
+        ctx.shadowColor = '#39ff14';
+      } else {
+        // Untyped → white
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+        ctx.shadowBlur = 0;
+      }
+      ctx.textAlign = 'left';
+      ctx.fillText(ch, startX, labelY);
+      startX += charW;
+    }
+    ctx.shadowBlur = 0;
+    ctx.textAlign = 'center';
+  }
+
+  // ── Helper: get translated string for current language ─────
+  t(key) { return UI_TEXT[this.language][key] || UI_TEXT.en[key] || key; }
+
+  // ── RENDER: HUD ────────────────────────────────────────────
+  renderHUD() {
+    const pad = 20;
+
+    // ── Top-left: Score ──
+    ctx.font = 'bold 22px "Orbitron", monospace';
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'top';
+    ctx.shadowBlur = 6;
+    ctx.shadowColor = '#0ff';
+    ctx.fillStyle = '#0ff';
+    ctx.fillText(this.t('score'), pad, pad);
+    ctx.font = 'bold 32px "Orbitron", monospace';
+    ctx.fillText(`${this.score}`, pad, pad + 26);
+    ctx.shadowBlur = 0;
+
+    // ── Top-left below score: Speed level ──
+    ctx.font = '14px "Share Tech Mono", monospace';
+    ctx.fillStyle = '#888';
+    ctx.fillText(`${this.t('speed')} ${this.gameSpeed.toFixed(2)}x  ·  ${this.t('lvl')} ${this.speedLevel}`, pad, pad + 64);
+
+    // ── Top-right: FPS counter (below the dropdown) ──
+    ctx.textAlign = 'right';
+    ctx.font = '13px "Share Tech Mono", monospace';
+    ctx.fillStyle = this.currentFPS >= 50 ? '#39ff14' : this.currentFPS >= 25 ? '#ffd700' : '#ff3333';
+    ctx.fillText(`${this.currentFPS} FPS`, canvas.width - pad, pad + 56);
+
+    // ── Bottom-center: Hearts ──
+    this.renderHearts();
+
+    // ── Active Buff indicator ──
+    if (this.activeBuff) {
+      const bx = canvas.width / 2;
+      const by = pad + 10;
+      // Background
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      const buffText = `⚡ ${this.activeBuff.name} (${this.activeBuff.timer.toFixed(1)}s)`;
+      ctx.font = 'bold 16px "Orbitron", monospace';
+      ctx.textAlign = 'center';
+      const bw = ctx.measureText(buffText).width + 24;
+      ctx.beginPath();
+      ctx.roundRect(bx - bw / 2, by - 4, bw, 28, 6);
+      ctx.fill();
+
+      // Border
+      ctx.strokeStyle = this.activeBuff.color;
+      ctx.lineWidth = 1.5;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = this.activeBuff.color;
+      ctx.stroke();
+
+      // Text
+      ctx.fillStyle = this.activeBuff.color;
+      ctx.fillText(buffText, bx, by + 18);
+
+      // Progress bar
+      const progress = this.activeBuff.timer / (CONFIG.BUFF_DURATION_MS / 1000);
+      ctx.fillStyle = this.activeBuff.color;
+      ctx.globalAlpha = 0.3;
+      ctx.fillRect(bx - bw / 2 + 2, by + 22, (bw - 4) * progress, 3);
+      ctx.globalAlpha = 1;
+
+      ctx.shadowBlur = 0;
+    }
+  }
+
+  // ── RENDER: Hearts (bottom center) ─────────────────────────
+  renderHearts() {
+    const heartSize = 18;
+    const gap = 8;
+    const totalW = CONFIG.PLAYER_MAX_HEARTS * (heartSize * 2 + gap) - gap;
+    const startX = canvas.width / 2 - totalW / 2;
+    const y = canvas.height - 22;
+
+    ctx.font = '11px "Share Tech Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillText('HP', canvas.width / 2, y - heartSize - 6);
+
+    for (let i = 0; i < CONFIG.PLAYER_MAX_HEARTS; i++) {
+      const hx = startX + i * (heartSize * 2 + gap) + heartSize;
+      const hy = y;
+
+      if (i < this.hearts) {
+        // Filled heart
+        ctx.shadowBlur = 10;
+        ctx.shadowColor = '#ff1493';
+        ctx.fillStyle = '#ff1493';
+        ctx.strokeStyle = '#ff69b4';
+      } else {
+        // Empty heart
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(60, 20, 30, 0.6)';
+        ctx.strokeStyle = 'rgba(255, 105, 180, 0.25)';
+      }
+
+      ctx.lineWidth = 1.5;
+      drawHeartShape(hx, hy, heartSize);
+      ctx.fill();
+      ctx.stroke();
+    }
+    ctx.shadowBlur = 0;
+  }
+
+  // ── RENDER: Menu Screen ────────────────────────────────────
+  renderMenu() {
+    // Dark overlay
+    ctx.fillStyle = 'rgba(5, 5, 15, 0.85)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    // Title (uses translated strings)
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = '#0ff';
+    ctx.fillStyle = '#0ff';
+    ctx.font = 'bold 48px "Orbitron", sans-serif';
+    ctx.fillText(this.t('titleLine1'), cx, cy - 90);
+    ctx.font = 'bold 56px "Orbitron", sans-serif';
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor = '#ff3399';
+    ctx.fillText(this.t('titleLine2'), cx, cy - 35);
+    ctx.shadowBlur = 0;
+
+    // Decorative line
+    const lineW = 300;
+    const grad = ctx.createLinearGradient(cx - lineW/2, 0, cx + lineW/2, 0);
+    grad.addColorStop(0, 'transparent');
+    grad.addColorStop(0.3, '#0ff');
+    grad.addColorStop(0.7, '#ff3399');
+    grad.addColorStop(1, 'transparent');
+    ctx.strokeStyle = grad;
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - lineW/2, cy + 5);
+    ctx.lineTo(cx + lineW/2, cy + 5);
+    ctx.stroke();
+
+    // Instructions
+    ctx.font = '15px "Share Tech Mono", monospace';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+    ctx.fillText(this.t('instruction1'), cx, cy + 50);
+    ctx.fillText(this.t('instruction2'), cx, cy + 75);
+
+    // Start prompt (pulsing)
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
+    ctx.font = 'bold 20px "Orbitron", sans-serif';
+    ctx.fillStyle = `rgba(0, 255, 255, ${0.4 + 0.6 * pulse})`;
+    ctx.shadowBlur = 12 * pulse;
+    ctx.shadowColor = '#0ff';
+    ctx.fillText(this.t('pressStart'), cx, cy + 130);
+    ctx.shadowBlur = 0;
+
+    // Version
+    ctx.font = '11px "Share Tech Mono", monospace';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+    ctx.fillText(this.t('version'), cx, canvas.height - 30);
+  }
+
+  // ── RENDER: Game Over Screen ───────────────────────────────
+  renderGameOver() {
+    // Semi-transparent overlay
+    ctx.fillStyle = 'rgba(5, 0, 10, 0.8)';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    const cx = canvas.width / 2;
+    const cy = canvas.height / 2;
+
+    // GAME OVER text
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.shadowBlur = 30;
+    ctx.shadowColor = '#ff0044';
+    ctx.fillStyle = '#ff0044';
+    ctx.font = 'bold 60px "Orbitron", sans-serif';
+    ctx.fillText(this.t('gameOver'), cx, cy - 70);
+    ctx.shadowBlur = 0;
+
+    // Score
+    ctx.font = '18px "Share Tech Mono", monospace';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+    ctx.fillText(this.t('finalScore'), cx, cy - 10);
+    ctx.font = 'bold 48px "Orbitron", sans-serif';
+    ctx.shadowBlur = 10;
+    ctx.shadowColor = '#ffd700';
+    ctx.fillStyle = '#ffd700';
+    ctx.fillText(`${this.score}`, cx, cy + 35);
+    ctx.shadowBlur = 0;
+
+    // Stats
+    ctx.font = '14px "Share Tech Mono", monospace';
+    ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+    ctx.fillText(`${this.t('maxSpeed')}: ${this.gameSpeed.toFixed(2)}x  ·  ${this.t('level')}: ${this.speedLevel}`, cx, cy + 80);
+
+    // Restart prompt
+    const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
+    ctx.font = 'bold 18px "Orbitron", sans-serif';
+    ctx.fillStyle = `rgba(0, 255, 255, ${0.4 + 0.6 * pulse})`;
+    ctx.shadowBlur = 10 * pulse;
+    ctx.shadowColor = '#0ff';
+    ctx.fillText(this.t('pressRestart'), cx, cy + 130);
+    ctx.shadowBlur = 0;
+  }
+
+  // ── GAME LOOP ──────────────────────────────────────────────
+  gameLoop(timestamp) {
+    requestAnimationFrame((t) => this.gameLoop(t));
+
+    // First frame init
+    if (!this.lastTimestamp) {
+      this.lastTimestamp = timestamp;
+      return;
+    }
+
+    const elapsed = timestamp - this.lastTimestamp;
+
+    // FPS limiter: skip this frame if we haven't reached the target interval
+    if (this.targetFPS > 0) {
+      if (elapsed < 1000 / this.targetFPS) return;
+    }
+
+    this.lastTimestamp = timestamp;
+
+    // Delta time in seconds, capped to prevent spiral of death
+    const dt = Math.min(elapsed / 1000, 0.1);
+
+    // FPS calculation (rolling 1-second window)
+    this.fpsFrameCount++;
+    this.fpsAccumulator += elapsed;
+    if (this.fpsAccumulator >= 1000) {
+      this.currentFPS = Math.round((this.fpsFrameCount * 1000) / this.fpsAccumulator);
+      this.fpsFrameCount = 0;
+      this.fpsAccumulator = 0;
+    }
+
+    // Update game logic only when playing
+    if (this.state === 'playing') {
+      this.update(dt);
+    } else {
+      // Still update stars & particles for visual polish on menu/gameover
+      for (const star of this.stars) star.update(dt);
+      for (let i = this.particles.length - 1; i >= 0; i--) {
+        this.particles[i].update(dt);
+        if (this.particles[i].life <= 0) this.particles.splice(i, 1);
+      }
+      this.gameTime += dt;
+    }
+
+    this.render();
+  }
+
+  // ── START ──────────────────────────────────────────────────
+  start() {
+    // Input listener
+    window.addEventListener('keydown', (e) => {
+      // Prevent space scrolling, etc.
+      if (e.key === ' ' || e.key === 'Enter') e.preventDefault();
+      this.handleKeyDown(e);
+    });
+
+    // FPS selector
+    const fpsSelect = document.getElementById('fpsSelect');
+    fpsSelect.addEventListener('change', () => {
+      this.targetFPS = parseInt(fpsSelect.value, 10);
+      // Reset timing to avoid big dt jump
+      this.lastTimestamp = 0;
+    });
+
+    // Language selector
+    const langSelect = document.getElementById('langSelect');
+    langSelect.addEventListener('change', () => {
+      this.language = langSelect.value;
+      // Clear existing entities so new ones spawn in the correct language
+      if (this.state === 'playing') {
+        // Release target lock
+        if (this.currentTarget) {
+          this.currentTarget.isTargeted = false;
+          this.currentTarget = null;
+        }
+        this.entities = [];
+        this.alienSpawnTimer = 0;
+      }
+    });
+
+    // Launch the loop
+    requestAnimationFrame((t) => this.gameLoop(t));
+  }
+}
+
+// ─── INITIALIZE & RUN ────────────────────────────────────────
+const game = new Game();
+game.start();
+
+</script>
+</body>
+</html>
