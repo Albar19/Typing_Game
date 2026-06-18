@@ -1427,14 +1427,19 @@ class Game {
     if (this.activeBuff) {
       const bx = canvas.width / 2;
       const by = pad + 10;
-      // Background
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
       const buffText = `⚡ ${this.activeBuff.name} (${this.activeBuff.timer.toFixed(1)}s)`;
       ctx.font = 'bold 16px "Orbitron", monospace';
       ctx.textAlign = 'center';
-      const bw = ctx.measureText(buffText).width + 24;
+      ctx.textBaseline = 'middle';
+      const bw = ctx.measureText(buffText).width + 32;
+      const bh = 32;
+      const boxX = bx - bw / 2;
+      const boxY = by;
+
+      // Background
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
       ctx.beginPath();
-      ctx.roundRect(bx - bw / 2, by - 4, bw, 28, 6);
+      ctx.roundRect(boxX, boxY, bw, bh, 6);
       ctx.fill();
 
       // Border
@@ -1444,15 +1449,15 @@ class Game {
       ctx.shadowColor = this.activeBuff.color;
       ctx.stroke();
 
-      // Text
+      // Text (vertically centered in box)
       ctx.fillStyle = this.activeBuff.color;
-      ctx.fillText(buffText, bx, by + 18);
+      ctx.fillText(buffText, bx, boxY + bh / 2);
 
-      // Progress bar
+      // Progress bar (at bottom of box)
       const progress = this.activeBuff.timer / (CONFIG.BUFF_DURATION_MS / 1000);
       ctx.fillStyle = this.activeBuff.color;
       ctx.globalAlpha = 0.3;
-      ctx.fillRect(bx - bw / 2 + 2, by + 22, (bw - 4) * progress, 3);
+      ctx.fillRect(boxX + 2, boxY + bh - 5, (bw - 4) * progress, 3);
       ctx.globalAlpha = 1;
 
       ctx.shadowBlur = 0;
