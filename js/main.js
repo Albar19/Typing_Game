@@ -425,7 +425,7 @@ const CONFIG = {
   PLAYER_DEFAULT_HEARTS: 3,
   PLAYER_MAX_HEARTS: 5,
   BASE_FALL_SPEED: 70,           // pixels per second
-  BULLET_SPEED: 1000,            // pixels per second
+  BULLET_SPEED: 1100,            // pixels per second
   BASE_ALIEN_SPAWN_MS: 2800,     // milliseconds
   LUCKY_BOX_SPAWN_MS: 12000,
   HEART_SPAWN_MS: 18000,
@@ -444,9 +444,9 @@ const CONFIG = {
 const BUFF_TYPES = [
   { id: 'slowmo', nameKey: 'buffSlowmo', color: '#00bfff' },
   { id: 'double', nameKey: 'buffDouble', color: '#ffd700' },
-  { id: 'bomb',   nameKey: 'buffBomb',   color: '#ff4400', instant: true },
+  { id: 'bomb', nameKey: 'buffBomb', color: '#ff4400', instant: true },
   { id: 'shield', nameKey: 'buffShield', color: '#00ff88', instant: true },
-  { id: 'laser',  nameKey: 'buffLaser',  color: '#cc44ff' },
+  { id: 'laser', nameKey: 'buffLaser', color: '#cc44ff' },
 ];
 
 // ─── CANVAS SETUP ────────────────────────────────────────────
@@ -969,10 +969,20 @@ class Game {
       }
       else if (buffDef.id === 'shield') {
         // ── SHIELD: Passive protection, lasts until used ──
-        this.hasShield = true;
-        AudioFX.playBuff();
-        this.flashColor = '#00ff88';
-        this.flashAlpha = 0.3;
+        if (this.hasShield) {
+          // If already has shield, convert to points (10 pts, affected by double score)
+          let pts = 10;
+          if (this.activeBuff && this.activeBuff.id === 'double') pts *= 2;
+          this.score += pts;
+          AudioFX.playBuff();
+          this.flashColor = '#ffd700'; // Gold flash for points
+          this.flashAlpha = 0.3;
+        } else {
+          this.hasShield = true;
+          AudioFX.playBuff();
+          this.flashColor = '#00ff88';
+          this.flashAlpha = 0.3;
+        }
       }
       else {
         // ── Timed buffs (slowmo, double, laser) ──
@@ -990,10 +1000,18 @@ class Game {
     else if (entity.type === 'heart') {
       if (this.hearts < CONFIG.PLAYER_MAX_HEARTS) {
         this.hearts++;
+        AudioFX.playHeal();
+        this.flashColor = '#ff69b4';
+        this.flashAlpha = 0.2;
+      } else {
+        // HP full, convert to points (10 pts, affected by double score)
+        let pts = 10;
+        if (this.activeBuff && this.activeBuff.id === 'double') pts *= 2;
+        this.score += pts;
+        AudioFX.playHeal();
+        this.flashColor = '#ffd700'; // Gold flash for points
+        this.flashAlpha = 0.3;
       }
-      AudioFX.playHeal();
-      this.flashColor = '#ff69b4';
-      this.flashAlpha = 0.2;
     }
 
     // Check speed progression
@@ -1716,7 +1734,7 @@ class Game {
       const word = this.currentTarget.word;
       ctx.font = 'bold 20px "Share Tech Mono", monospace';
       ctx.textAlign = 'center';
-      
+
       const totalWidth = ctx.measureText(word).width;
       let startX = cx - totalWidth / 2;
 
@@ -1724,7 +1742,7 @@ class Game {
       for (let i = 0; i < word.length; i++) {
         const ch = word[i];
         const charW = ctx.measureText(ch).width;
-        
+
         ctx.textAlign = 'left';
         if (i < this.currentTarget.typedIndex) {
           // Typed -> neon green with glow
@@ -2059,7 +2077,7 @@ class Game {
     }
 
     let elapsed = timestamp - this.lastTimestamp;
-    
+
     // Safety check: reset if huge jump occurs (e.g. background tab)
     if (elapsed > 200) {
       this.lastTimestamp = timestamp;
