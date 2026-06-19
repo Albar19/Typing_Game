@@ -25,6 +25,8 @@ export class Game {
     this.musicVolume = savedMusicVolume !== null ? parseFloat(savedMusicVolume) : 0.5;
     const savedSfxVolume = localStorage.getItem('typing_space_shooter_sfx_volume');
     this.sfxVolume = savedSfxVolume !== null ? parseFloat(savedSfxVolume) : 0.5;
+    const savedErrorShake = localStorage.getItem('typing_space_shooter_error_shake');
+    this.errorShakeEnabled = savedErrorShake !== null ? savedErrorShake === 'true' : true;
 
     // ── Core collections ──
     this.entities = [];
@@ -127,6 +129,11 @@ export class Game {
   setSfxVolume(vol) {
     this.sfxVolume = clamp(vol, 0, 1);
     localStorage.setItem('typing_space_shooter_sfx_volume', this.sfxVolume);
+  }
+
+  setErrorShake(enabled) {
+    this.errorShakeEnabled = enabled;
+    localStorage.setItem('typing_space_shooter_error_shake', enabled);
   }
 
   // ── RESET / START ──────────────────────────────────────────
@@ -261,9 +268,9 @@ export class Game {
     // Paused state menu navigation
     if (this.state === 'paused') {
       if (e.key === 'ArrowUp') {
-        this.pauseMenuSelectedRow = (this.pauseMenuSelectedRow - 1 + 5) % 5;
+        this.pauseMenuSelectedRow = (this.pauseMenuSelectedRow - 1 + 6) % 6;
       } else if (e.key === 'ArrowDown') {
-        this.pauseMenuSelectedRow = (this.pauseMenuSelectedRow + 1) % 5;
+        this.pauseMenuSelectedRow = (this.pauseMenuSelectedRow + 1) % 6;
       } else if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
         if (this.pauseMenuSelectedRow === 0) {
           // Toggle language
@@ -288,9 +295,14 @@ export class Game {
           // Adjust SFX volume by 0.1
           const change = e.key === 'ArrowLeft' ? -0.1 : 0.1;
           this.setSfxVolume(this.sfxVolume + change);
+        } else if (this.pauseMenuSelectedRow === 4) {
+          // Toggle error shake
+          this.setErrorShake(!this.errorShakeEnabled);
         }
       } else if (e.key === 'Enter') {
         if (this.pauseMenuSelectedRow === 4) {
+          this.setErrorShake(!this.errorShakeEnabled);
+        } else if (this.pauseMenuSelectedRow === 5) {
           this.state = 'playing';
           this.playBackgroundMusic();
         }
@@ -332,6 +344,12 @@ export class Game {
           this.fireBullet(this.currentTarget);
           this.currentTarget.isTargeted = false;
           this.currentTarget = null;
+        }
+      } else {
+        // Wrong key while locked: play error sound & trigger thin shake if enabled
+        AudioFX.playErrorType();
+        if (this.errorShakeEnabled) {
+          this.shakeIntensity = Math.max(this.shakeIntensity, 4.5);
         }
       }
       // Wrong key while locked: simply ignore (forgiving)
@@ -1313,7 +1331,7 @@ export class Game {
     const cx = canvas.width / 2;
     const cy = canvas.height / 2;
     const w = 520;
-    const h = 520;
+    const h = 570;
     const cardX = cx - w / 2;
     const cardY = cy - h / 2;
 
@@ -1338,7 +1356,7 @@ export class Game {
     ctx.fillStyle = '#0ff';
     ctx.shadowBlur = 15;
     ctx.shadowColor = '#0ff';
-    ctx.fillText(this.t('paused'), cx, cardY + 50);
+    ctx.fillText(this.t('paused'), cx, cardY + 45);
     ctx.shadowBlur = 0;
 
     // Divider Line
@@ -1349,8 +1367,8 @@ export class Game {
     ctx.strokeStyle = grad;
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx - 150, cardY + 80);
-    ctx.lineTo(cx + 150, cardY + 80);
+    ctx.moveTo(cx - 150, cardY + 70);
+    ctx.lineTo(cx + 150, cardY + 70);
     ctx.stroke();
 
     // ── Row 0: Language Selection ──
@@ -1361,13 +1379,13 @@ export class Game {
       ctx.shadowBlur = 6;
       ctx.shadowColor = '#ff3399';
     }
-    ctx.fillText(this.t('language'), cx, cardY + 115);
+    ctx.fillText(this.t('language'), cx, cardY + 100);
     ctx.shadowBlur = 0;
 
     // EN Button
     const enSelected = this.language === 'en';
     const enX = cx - 110;
-    const enY = cardY + 130;
+    const enY = cardY + 115;
     ctx.beginPath();
     ctx.roundRect(enX, enY, 100, 30, 5);
     if (enSelected) {
@@ -1385,12 +1403,12 @@ export class Game {
     ctx.shadowBlur = 0;
     ctx.fillStyle = enSelected ? '#0ff' : '#fff';
     ctx.font = 'bold 12px "Orbitron", monospace';
-    ctx.fillText('ENGLISH', cx - 60, cardY + 145);
+    ctx.fillText('ENGLISH', cx - 60, cardY + 130);
 
     // ID Button
     const idSelected = this.language === 'id';
     const idX = cx + 10;
-    const idY = cardY + 130;
+    const idY = cardY + 115;
     ctx.beginPath();
     ctx.roundRect(idX, idY, 100, 30, 5);
     if (idSelected) {
@@ -1407,7 +1425,7 @@ export class Game {
     ctx.stroke();
     ctx.shadowBlur = 0;
     ctx.fillStyle = idSelected ? '#0ff' : '#fff';
-    ctx.fillText('INDONESIA', cx + 60, cardY + 145);
+    ctx.fillText('INDONESIA', cx + 60, cardY + 130);
 
     // ── Row 1: Refresh Rate (FPS) Selection ──
     const row1Focused = this.pauseMenuSelectedRow === 1;
@@ -1417,7 +1435,7 @@ export class Game {
       ctx.shadowBlur = 6;
       ctx.shadowColor = '#ff3399';
     }
-    ctx.fillText(this.t('refreshRate'), cx, cardY + 195);
+    ctx.fillText(this.t('refreshRate'), cx, cardY + 175);
     ctx.shadowBlur = 0;
 
     const fpsOptions = [60, 120, 144, 0];
@@ -1427,7 +1445,7 @@ export class Game {
     const fpsGap = 14;
     const totalW = fpsOptions.length * btnW + (fpsOptions.length - 1) * fpsGap;
     const startX = cx - totalW / 2;
-    const fpsY = cardY + 210;
+    const fpsY = cardY + 190;
 
     for (let i = 0; i < fpsOptions.length; i++) {
       const opt = fpsOptions[i];
@@ -1464,12 +1482,12 @@ export class Game {
       ctx.shadowBlur = 6;
       ctx.shadowColor = '#ff3399';
     }
-    ctx.fillText(this.t('musicVolume'), cx, cardY + 260);
+    ctx.fillText(this.t('musicVolume'), cx, cardY + 240);
     ctx.shadowBlur = 0;
 
     // Decrease Button [-]
     const mDecX = cx - 110;
-    const mDecY = cardY + 275;
+    const mDecY = cardY + 255;
     ctx.beginPath();
     ctx.roundRect(mDecX, mDecY, 30, 30, 5);
     ctx.strokeStyle = row2Focused ? '#ff3399' : 'rgba(255, 255, 255, 0.2)';
@@ -1481,7 +1499,7 @@ export class Game {
 
     // Volume Bar
     const mBarX = cx - 70;
-    const mBarY = cardY + 285;
+    const mBarY = cardY + 265;
     const mBarW = 140;
     const mBarH = 10;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
@@ -1494,7 +1512,7 @@ export class Game {
 
     // Increase Button [+]
     const mIncX = cx + 80;
-    const mIncY = cardY + 275;
+    const mIncY = cardY + 255;
     ctx.beginPath();
     ctx.roundRect(mIncX, mIncY, 30, 30, 5);
     ctx.strokeStyle = row2Focused ? '#ff3399' : 'rgba(255, 255, 255, 0.2)';
@@ -1508,7 +1526,7 @@ export class Game {
     ctx.textAlign = 'left';
     ctx.font = 'bold 12px "Orbitron", monospace';
     ctx.fillStyle = '#fff';
-    ctx.fillText(`${Math.round(this.musicVolume * 100)}%`, cx + 125, cardY + 290);
+    ctx.fillText(`${Math.round(this.musicVolume * 100)}%`, cx + 125, cardY + 270);
     ctx.textAlign = 'center';
 
     // ── Row 3: SFX Volume Selection ──
@@ -1519,12 +1537,12 @@ export class Game {
       ctx.shadowBlur = 6;
       ctx.shadowColor = '#ff3399';
     }
-    ctx.fillText(this.t('sfxVolume'), cx, cardY + 325);
+    ctx.fillText(this.t('sfxVolume'), cx, cardY + 305);
     ctx.shadowBlur = 0;
 
     // Decrease Button [-]
     const sDecX = cx - 110;
-    const sDecY = cardY + 340;
+    const sDecY = cardY + 320;
     ctx.beginPath();
     ctx.roundRect(sDecX, sDecY, 30, 30, 5);
     ctx.strokeStyle = row3Focused ? '#ff3399' : 'rgba(255, 255, 255, 0.2)';
@@ -1536,7 +1554,7 @@ export class Game {
 
     // Volume Bar
     const sBarX = cx - 70;
-    const sBarY = cardY + 350;
+    const sBarY = cardY + 330;
     const sBarW = 140;
     const sBarH = 10;
     ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
@@ -1549,7 +1567,7 @@ export class Game {
 
     // Increase Button [+]
     const sIncX = cx + 80;
-    const sIncY = cardY + 340;
+    const sIncY = cardY + 320;
     ctx.beginPath();
     ctx.roundRect(sIncX, sIncY, 30, 30, 5);
     ctx.strokeStyle = row3Focused ? '#ff3399' : 'rgba(255, 255, 255, 0.2)';
@@ -1563,19 +1581,75 @@ export class Game {
     ctx.textAlign = 'left';
     ctx.font = 'bold 12px "Orbitron", monospace';
     ctx.fillStyle = '#fff';
-    ctx.fillText(`${Math.round(this.sfxVolume * 100)}%`, cx + 125, cardY + 355);
+    ctx.fillText(`${Math.round(this.sfxVolume * 100)}%`, cx + 125, cardY + 335);
     ctx.textAlign = 'center';
 
-    // ── Row 4: Resume Button ──
+    // ── Row 4: Error Shake Selection ──
     const row4Focused = this.pauseMenuSelectedRow === 4;
+    ctx.font = 'bold 13px "Orbitron", monospace';
+    ctx.fillStyle = row4Focused ? '#ff3399' : '#888';
+    if (row4Focused) {
+      ctx.shadowBlur = 6;
+      ctx.shadowColor = '#ff3399';
+    }
+    ctx.fillText(this.t('errorShake'), cx, cardY + 370);
+    ctx.shadowBlur = 0;
+
+    // ON Button
+    const shakeOnSelected = this.errorShakeEnabled === true;
+    const shakeOnX = cx - 110;
+    const shakeOnY = cardY + 385;
+    ctx.beginPath();
+    ctx.roundRect(shakeOnX, shakeOnY, 100, 30, 5);
+    if (shakeOnSelected) {
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+      ctx.fill();
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#0ff';
+    } else {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = shakeOnSelected ? '#0ff' : '#fff';
+    ctx.font = 'bold 12px "Orbitron", monospace';
+    ctx.fillText('ON', cx - 60, cardY + 400);
+
+    // OFF Button
+    const shakeOffSelected = this.errorShakeEnabled === false;
+    const shakeOffX = cx + 10;
+    const shakeOffY = cardY + 385;
+    ctx.beginPath();
+    ctx.roundRect(shakeOffX, shakeOffY, 100, 30, 5);
+    if (shakeOffSelected) {
+      ctx.fillStyle = 'rgba(0, 255, 255, 0.2)';
+      ctx.fill();
+      ctx.strokeStyle = '#0ff';
+      ctx.lineWidth = 2;
+      ctx.shadowBlur = 8;
+      ctx.shadowColor = '#0ff';
+    } else {
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+      ctx.lineWidth = 1.5;
+    }
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = shakeOffSelected ? '#0ff' : '#fff';
+    ctx.fillText('OFF', cx + 60, cardY + 400);
+
+    // ── Row 5: Resume Button ──
+    const row5Focused = this.pauseMenuSelectedRow === 5;
     const resX = cx - 100;
-    const resY = cardY + 410;
+    const resY = cardY + 450;
     const resW = 200;
     const resH = 40;
 
     ctx.beginPath();
     ctx.roundRect(resX, resY, resW, resH, 6);
-    if (row4Focused) {
+    if (row5Focused) {
       const pulse = 0.8 + 0.2 * Math.sin(performance.now() / 200);
       ctx.fillStyle = `rgba(255, 51, 153, ${0.15 * pulse})`;
       ctx.fill();
@@ -1591,7 +1665,7 @@ export class Game {
     ctx.shadowBlur = 0;
 
     ctx.font = 'bold 15px "Orbitron", sans-serif';
-    ctx.fillStyle = row4Focused ? '#ff3399' : '#fff';
+    ctx.fillStyle = row5Focused ? '#ff3399' : '#fff';
     ctx.fillText(this.t('resume'), cx, resY + resH / 2);
 
     // ── Selector Indicator (Arrow next to rows for keyboard users) ──
@@ -1600,7 +1674,7 @@ export class Game {
     ctx.shadowBlur = 8;
     ctx.shadowColor = '#ff3399';
     if (row0Focused) {
-      ctx.fillText('>', cx - 140, cardY + 145);
+      ctx.fillText('>', cx - 140, cardY + 130);
     } else if (row1Focused) {
       ctx.fillText('>', startX - 25, fpsY + btnH / 2);
     } else if (row2Focused) {
@@ -1608,6 +1682,8 @@ export class Game {
     } else if (row3Focused) {
       ctx.fillText('>', sDecX - 25, sDecY + 15);
     } else if (row4Focused) {
+      ctx.fillText('>', shakeOnX - 25, shakeOnY + 15);
+    } else if (row5Focused) {
       ctx.fillText('>', cx - 125, resY + resH / 2);
     }
     ctx.shadowBlur = 0;
@@ -1616,7 +1692,7 @@ export class Game {
     const pulse = 0.5 + 0.5 * Math.sin(performance.now() / 400);
     ctx.font = '11px "Share Tech Mono", monospace';
     ctx.fillStyle = `rgba(255, 255, 255, ${0.3 + 0.3 * pulse})`;
-    ctx.fillText(this.t('pressEscResume'), cx, cardY + 490);
+    ctx.fillText(this.t('pressEscResume'), cx, cardY + 535);
   }
 
   // ── GAME LOOP ──────────────────────────────────────────────
@@ -1742,11 +1818,11 @@ export class Game {
 
       const cx = canvas.width / 2;
       const cy = canvas.height / 2;
-      const cardH = 520;
+      const cardH = 570;
       const cardY = cy - cardH / 2;
 
       // Language Buttons (Row 0)
-      if (clickY >= cardY + 130 && clickY <= cardY + 160) {
+      if (clickY >= cardY + 115 && clickY <= cardY + 145) {
         if (clickX >= cx - 110 && clickX <= cx - 10) {
           this.setLanguage('en');
           this.pauseMenuSelectedRow = 0;
@@ -1757,7 +1833,7 @@ export class Game {
       }
 
       // FPS Buttons (Row 1)
-      if (clickY >= cardY + 210 && clickY <= cardY + 240) {
+      if (clickY >= cardY + 190 && clickY <= cardY + 220) {
         if (clickX >= cx - 181 && clickX <= cx - 101) {
           this.setFPS(60);
           this.pauseMenuSelectedRow = 1;
@@ -1774,7 +1850,7 @@ export class Game {
       }
 
       // Music Volume Adjustment (Row 2)
-      if (clickY >= cardY + 275 && clickY <= cardY + 305) {
+      if (clickY >= cardY + 255 && clickY <= cardY + 285) {
         if (clickX >= cx - 110 && clickX <= cx - 80) {
           this.setMusicVolume(this.musicVolume - 0.1);
           this.pauseMenuSelectedRow = 2;
@@ -1789,7 +1865,7 @@ export class Game {
       }
 
       // SFX Volume Adjustment (Row 3)
-      if (clickY >= cardY + 340 && clickY <= cardY + 370) {
+      if (clickY >= cardY + 320 && clickY <= cardY + 350) {
         if (clickX >= cx - 110 && clickX <= cx - 80) {
           this.setSfxVolume(this.sfxVolume - 0.1);
           this.pauseMenuSelectedRow = 3;
@@ -1803,8 +1879,19 @@ export class Game {
         }
       }
 
-      // Resume Button (Row 4)
-      if (clickY >= cardY + 410 && clickY <= cardY + 450) {
+      // Error Shake Buttons (Row 4)
+      if (clickY >= cardY + 385 && clickY <= cardY + 415) {
+        if (clickX >= cx - 110 && clickX <= cx - 10) {
+          this.setErrorShake(true);
+          this.pauseMenuSelectedRow = 4;
+        } else if (clickX >= cx + 10 && clickX <= cx + 110) {
+          this.setErrorShake(false);
+          this.pauseMenuSelectedRow = 4;
+        }
+      }
+
+      // Resume Button (Row 5)
+      if (clickY >= cardY + 450 && clickY <= cardY + 490) {
         if (clickX >= cx - 100 && clickX <= cx + 100) {
           this.state = 'playing';
           this.playBackgroundMusic();
