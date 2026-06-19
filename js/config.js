@@ -538,8 +538,8 @@ export const CONFIG = {
   LUCKY_BOX_SPAWN_MS: 12000,
   HEART_SPAWN_MS: 18000,
   BUFF_DURATION_MS: 10000,
-  SPEED_UP_INTERVAL: 75,         // every N points
-  SPEED_UP_FACTOR: 1.08,         // multiplier per level
+  SPEED_UP_INTERVAL: 50,         // every N points (slightly longer interval)
+  SPEED_UP_FACTOR: 1.05,         // multiplier per level (5% increase for better tempo)
   SCORE_PER_ALIEN: 10,
   ENTITY_SIZE: 42,
   PLAYER_SIZE: 52,

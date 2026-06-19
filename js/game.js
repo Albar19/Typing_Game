@@ -481,7 +481,7 @@ export class Game {
     const interval = CONFIG.SPEED_UP_INTERVAL;
     while (this.score >= this.lastSpeedUpScore + interval) {
       this.lastSpeedUpScore += interval;
-      this.gameSpeed = Math.min(this.gameSpeed * CONFIG.SPEED_UP_FACTOR, 2.0);
+      this.gameSpeed = Math.min(this.gameSpeed * CONFIG.SPEED_UP_FACTOR, 4.0);
       this.speedLevel++;
     }
   }
@@ -556,8 +556,8 @@ export class Game {
     this.luckySpawnTimer += dtMs;
     this.heartSpawnTimer += dtMs;
 
-    // Alien spawn (interval decreases with gameSpeed)
-    const alienInterval = CONFIG.BASE_ALIEN_SPAWN_MS / this.gameSpeed;
+    // Alien spawn (interval decreases with square root of gameSpeed to prevent overwhelming layout)
+    const alienInterval = CONFIG.BASE_ALIEN_SPAWN_MS / Math.sqrt(this.gameSpeed);
     if (this.alienSpawnTimer >= alienInterval) {
       this.alienSpawnTimer -= alienInterval;
       this.spawnEntity('alien');
