@@ -22,6 +22,7 @@ Type words to destroy falling alien enemies before they reach you!
 |-------|-----------|
 | Language | **Vanilla JavaScript** (ES6 Modules) |
 | Rendering | **HTML5 Canvas 2D** |
+| Game Loop | **requestAnimationFrame** |
 | Audio | **Web Audio API** |
 | Storage | **localStorage** |
 | Fonts | Google Fonts — Orbitron, Share Tech Mono |
@@ -103,12 +104,13 @@ Use the IDE's integrated terminal to run one of the commands above, or install a
 │   └── style.css           # Minimal styling
 ├── js/
 │   ├── main.js             # Game bootstrapper
-│   ├── game.js             # Core game loop & state machine
-│   ├── config.js           # Word banks, UI text, game constants
+│   ├── game.js             # Core state, update loop, spawning, collisions
+│   ├── input.js            # Keyboard input, pause menu navigation, click handling
+│   ├── config.js           # Word banks, UI text, game constants, buff definitions
 │   ├── canvas.js           # Canvas singleton & resize handling
 │   ├── audio.js            # Sound effects & music manager
-│   ├── utils.js            # Math utilities
-│   ├── rendering.js        # Canvas drawing helpers
+│   ├── utils.js            # Math utilities (rand, clamp, lerp, dist)
+│   ├── rendering.js        # All Canvas drawing (HUD, entities, menus, overlays)
 │   └── entities/
 │       ├── entity.js       # Alien / power-up / heart entity
 │       ├── bullet.js       # Laser bullet with trail
