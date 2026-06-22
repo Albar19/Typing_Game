@@ -1,7 +1,7 @@
-# Typing Space Shooter 🚀
+# NetRunner: Belajar Mengetik 🚀
 
-A **cyberpunk-themed typing space shooter** built entirely with vanilla JavaScript (ES6 Modules) and HTML5 Canvas.  
-Type words to destroy falling alien enemies before they reach you!
+A **cyberpunk-themed typing trainer and shooter game** built entirely with vanilla JavaScript (ES6 Modules) and HTML5 Canvas.  
+Type words to destroy falling alien/glitch enemies before they breach your system!
 
 ## 🎮 Features
 
