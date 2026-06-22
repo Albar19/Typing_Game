@@ -8,42 +8,4 @@
     }
     canvas { display: block; }
 
-    /* Top-right control bar */
-    #controlBar {
-      position: fixed;
-      top: 12px;
-      right: 12px;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      gap: 14px;
-    }
-    .ctrl-group {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      background: rgba(0, 0, 0, 0.6);
-      border: 1px solid rgba(0, 255, 255, 0.3);
-      border-radius: 6px;
-      padding: 6px 12px;
-      backdrop-filter: blur(4px);
-    }
-    .ctrl-group label {
-      color: rgba(0, 255, 255, 0.7);
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 11px;
-      letter-spacing: 1px;
-    }
-    .ctrl-select {
-      background: rgba(10, 10, 30, 0.9);
-      color: #0ff;
-      border: 1px solid rgba(0, 255, 255, 0.4);
-      border-radius: 4px;
-      padding: 4px 8px;
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 12px;
-      outline: none;
-      cursor: pointer;
-    }
-    .ctrl-select:hover { border-color: #0ff; }
-    .ctrl-select option { background: #0a0a1e; color: #0ff; }
+
