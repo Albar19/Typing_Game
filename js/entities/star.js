@@ -1,5 +1,5 @@
-import { canvas, ctx } from '../canvas.js';
-import { randFloat } from '../utils.js';
+import { canvas, ctx } from '../core/canvas.js';
+import { randFloat } from '../core/utils.js';
 
 export class Star {
   constructor() { this.reset(true); }

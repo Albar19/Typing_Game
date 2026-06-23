@@ -1,5 +1,5 @@
-import { ctx } from '../canvas.js';
-import { randFloat } from '../utils.js';
+import { ctx } from '../core/canvas.js';
+import { randFloat } from '../core/utils.js';
 
 export class Particle {
   constructor(x, y, color) {

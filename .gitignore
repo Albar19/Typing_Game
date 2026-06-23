@@ -8,9 +8,11 @@
 *.swp
 *.code-workspace
 .DS_Store
+Thumbs.db
 
 # Temporary scripts
 split.py
+*.tmp
 
 # Optional: You can ignore large audio/video assets if you don't want them in git
 # assets/audio/*.mp3
@@ -19,3 +21,13 @@ split.py
 # AI Agent & Node
 .agents/
 node_modules/
+
+# OS generated files
+._*
+.DS_Store?
+*.swp
+*.swo
+
+# Logs
+*.log
+npm-debug.log*

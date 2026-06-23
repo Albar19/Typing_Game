@@ -1,88 +1,99 @@
 import { canvas, ctx } from './canvas.js';
-import { CONFIG, UI_TEXT, BUFF_TYPES, getWordBanks } from './config.js';
-import { AudioFX } from './audio.js';
+import { CONFIG, UI_TEXT, BUFF_TYPES } from '../config/config.js';
+import { getWordBanks } from '../config/wordbanks/index.js';
+import { AudioFX, setVolume as setAudioVolume } from './audio.js';
 import { randInt, clamp } from './utils.js';
-import { renderGrid, renderScanlines, renderPlayer, renderEntity, renderHUD, renderMenu, renderGameOver, renderPauseMenu } from './rendering.js';
+import { Star } from '../entities/star.js';
+import { Particle } from '../entities/particle.js';
+import { Entity } from '../entities/entity.js';
+import { Bullet } from '../entities/bullet.js';
+import { Router, SCREEN } from './router.js';
 import { setupInputListeners } from './input.js';
-import { Star } from './entities/star.js';
-import { Particle } from './entities/particle.js';
-import { Entity } from './entities/entity.js';
-import { Bullet } from './entities/bullet.js';
 
 export class Game {
   constructor() {
-    this.state = 'menu';
-
-    this.pauseMenuSelectedRow = 0;
-
     this.language = 'en';
 
     const savedMusicVolume = localStorage.getItem('typing_space_shooter_music_volume');
     this.musicVolume = savedMusicVolume !== null ? parseFloat(savedMusicVolume) : 0.5;
     const savedSfxVolume = localStorage.getItem('typing_space_shooter_sfx_volume');
     this.sfxVolume = savedSfxVolume !== null ? parseFloat(savedSfxVolume) : 0.5;
+    setAudioVolume(this.sfxVolume);
     const savedErrorShake = localStorage.getItem('typing_space_shooter_error_shake');
     this.errorShakeEnabled = savedErrorShake !== null ? savedErrorShake === 'true' : true;
+    const savedHighScore = localStorage.getItem('typing_space_shooter_highscore');
+    this.highScore = savedHighScore ? parseInt(savedHighScore, 10) : 0;
 
+    this.router = new Router(this);
+    this.initGameState();
+    this.initStars();
+    this.initAudio();
+    this.initFPSTracking();
+
+    this.scanlineOffset = 0;
+  }
+
+  initGameState() {
     this.entities = [];
     this.bullets = [];
     this.particles = [];
-    this.stars = [];
-
-    this.playerX = 0;
-    this.playerY = 0;
+    this.playerX = canvas.width / 2;
+    this.playerY = canvas.height - 135;
     this.hearts = CONFIG.PLAYER_DEFAULT_HEARTS;
-
     this.currentTarget = null;
-
     this.score = 0;
     this.gameSpeed = 1.0;
     this.speedLevel = 1;
     this.lastSpeedUpScore = 0;
     this.hasPlayedScore50Sound = false;
-
-    const savedHighScore = localStorage.getItem('typing_space_shooter_highscore');
-    this.highScore = savedHighScore ? parseInt(savedHighScore, 10) : 0;
-
     this.activeBuff = null;
-
     this.hasShield = false;
     this.shieldFlashTimer = 0;
-
     this.alienSpawnTimer = 0;
     this.luckySpawnTimer = 0;
     this.heartSpawnTimer = 0;
-
-    this.targetFPS = 60;
-    this.currentFPS = 0;
-    this.fpsFrameCount = 0;
-    this.fpsAccumulator = 0;
-    this.fpsLimiterAccumulator = 0;
-    this.lastFPSCalculationTime = 0;
-
-    this.lastTimestamp = 0;
-
     this.shakeIntensity = 0;
     this.shakeX = 0;
     this.shakeY = 0;
-
     this.flashAlpha = 0;
     this.flashColor = '#ff0000';
-
     this.gameTime = 0;
+    this.pauseMenuSelectedRow = 0;
 
+    // Combo system
+    this.combo = 0;
+    this.maxCombo = 0;
+  }
+
+  isAlien(type) {
+    return ['alien', 'speedy', 'tank', 'zigzag'].includes(type);
+  }
+
+  initStars() {
+    this.stars = [];
     for (let i = 0; i < CONFIG.STAR_COUNT; i++) {
       this.stars.push(new Star());
     }
+  }
 
+  initAudio() {
     this.lobbyMusic = new Audio('assets/audio/lobyMusic.mp3');
     this.lobbyMusic.loop = true;
     this.lobbyMusic.volume = this.musicVolume;
     this.backgroundMusic = new Audio('assets/audio/backgroundMusic.mp3');
     this.backgroundMusic.loop = true;
     this.backgroundMusic.volume = this.musicVolume;
+  }
 
-    this.scanlineOffset = 0;
+  initFPSTracking() {
+    this.targetFPS = 60;
+    this.currentFPS = 0;
+    this.fpsFrameCount = 0;
+    this.fpsAccumulator = 0;
+    this.fpsLimiterAccumulator = 0;
+    this.lastRenderTime = 0;
+    this.lastFPSCalculationTime = 0;
+    this.lastTimestamp = 0;
   }
 
   playLobbyMusic() {
@@ -109,6 +120,7 @@ export class Game {
 
   setSfxVolume(vol) {
     this.sfxVolume = clamp(vol, 0, 1);
+    setAudioVolume(this.sfxVolume);
     localStorage.setItem('typing_space_shooter_sfx_volume', this.sfxVolume);
   }
 
@@ -117,32 +129,26 @@ export class Game {
     localStorage.setItem('typing_space_shooter_error_shake', enabled);
   }
 
-  reset() {
+  setFPS(fps) {
+    this.targetFPS = fps;
+    this.lastTimestamp = 0;
+  }
+
+  setLanguage(lang) {
+    this.language = lang;
+    if (this.currentTarget) {
+      this.currentTarget.isTargeted = false;
+      this.currentTarget = null;
+    }
     this.entities = [];
-    this.bullets = [];
-    this.particles = [];
-    this.currentTarget = null;
-    this.score = 0;
-    this.gameSpeed = 1.0;
-    this.speedLevel = 1;
-    this.lastSpeedUpScore = 0;
-    this.hasPlayedScore50Sound = false;
-    this.hearts = CONFIG.PLAYER_DEFAULT_HEARTS;
-    this.activeBuff = null;
-    this.hasShield = false;
-    this.shieldFlashTimer = 0;
     this.alienSpawnTimer = 0;
     this.luckySpawnTimer = 0;
     this.heartSpawnTimer = 0;
-    this.shakeIntensity = 0;
-    this.flashAlpha = 0;
-    this.gameTime = 0;
-    this.playerX = canvas.width / 2;
-    this.playerY = canvas.height - 135;
-    this.pauseMenuSelectedRow = 0;
-    this.fpsLimiterAccumulator = 0;
-    this.lastFPSCalculationTime = 0;
-    this.state = 'playing';
+  }
+
+  reset() {
+    this.initGameState();
+    this.router.go(SCREEN.PLAYING);
     this.playBackgroundMusic();
   }
 
@@ -153,9 +159,9 @@ export class Game {
     return 'expert';
   }
 
-  getWord(isSpecial = false) {
-    let tier = this.getDifficultyTier();
-    if (isSpecial) {
+  getWord(isSpecial = false, forceTier = null) {
+    let tier = forceTier || this.getDifficultyTier();
+    if (isSpecial && !forceTier) {
       const order = ['easy', 'medium', 'hard', 'expert'];
       const idx = order.indexOf(tier);
       tier = order[Math.min(idx + 1, order.length - 1)];
@@ -175,8 +181,14 @@ export class Game {
   }
 
   spawnEntity(type) {
-    const isSpecial = (type !== 'alien');
-    const word = this.getWord(isSpecial);
+    const isAlien = this.isAlien(type);
+    const isSpecial = !isAlien;
+
+    let forceTier = null;
+    if (type === 'speedy') forceTier = 'easy';
+    else if (type === 'tank') forceTier = Math.random() < 0.5 ? 'hard' : 'expert';
+
+    const word = this.getWord(isSpecial, forceTier);
     const padding = 60;
     const x = randInt(padding, canvas.width - padding);
     const entity = new Entity(type, x, word);
@@ -186,6 +198,9 @@ export class Game {
   explode(x, y, type) {
     const colors = {
       alien: ['#ff3333', '#ff6600', '#ff9900', '#ffffff'],
+      speedy: ['#00ffff', '#00bfff', '#00e5ff', '#ffffff'],
+      tank: ['#cc00ff', '#8800ff', '#b300ff', '#ffffff'],
+      zigzag: ['#00ff66', '#33ff33', '#99ff33', '#ffffff'],
       luckybox: ['#ffd700', '#ffaa00', '#fff5a0', '#ffffff'],
       heart: ['#ff69b4', '#ff1493', '#ffb6c1', '#ffffff'],
     };
@@ -196,22 +211,8 @@ export class Game {
     }
   }
 
-  setLanguage(lang) {
-    this.language = lang;
-
-    if (this.currentTarget) {
-      this.currentTarget.isTargeted = false;
-      this.currentTarget = null;
-    }
-    this.entities = [];
-    this.alienSpawnTimer = 0;
-    this.luckySpawnTimer = 0;
-    this.heartSpawnTimer = 0;
-  }
-
-  setFPS(fps) {
-    this.targetFPS = fps;
-    this.lastTimestamp = 0;
+  applyScoreMultiplier(pts) {
+    return (this.activeBuff && this.activeBuff.id === 'double') ? pts * 2 : pts;
   }
 
   fireBullet(target) {
@@ -224,70 +225,27 @@ export class Game {
     entity.alive = false;
     this.explode(entity.cx, entity.cy, entity.type);
 
-    if (entity.type === 'alien') {
-      let pts = CONFIG.SCORE_PER_ALIEN;
-      if (this.activeBuff && this.activeBuff.id === 'double') pts *= 2;
-      this.score += pts;
-      AudioFX.playExplosion();
-    }
-    else if (entity.type === 'luckybox') {
-      const buffDef = BUFF_TYPES[randInt(0, BUFF_TYPES.length - 1)];
-      const t = UI_TEXT[this.language];
+    if (this.isAlien(entity.type)) {
+      let basePts = CONFIG.SCORE_PER_ALIEN;
+      if (entity.type === 'speedy') basePts = 15;
+      else if (entity.type === 'zigzag') basePts = 20;
+      else if (entity.type === 'tank') basePts = 30;
 
-      if (buffDef.id === 'bomb') {
-        for (let i = this.entities.length - 1; i >= 0; i--) {
-          const ent = this.entities[i];
-          if (ent.alive && ent.type === 'alien') {
-            ent.alive = false;
-            this.explode(ent.cx, ent.cy, 'alien');
-            let pts = CONFIG.SCORE_PER_ALIEN;
-            if (this.activeBuff && this.activeBuff.id === 'double') pts *= 2;
-            this.score += pts;
-            if (ent === this.currentTarget) this.currentTarget = null;
-          }
-        }
-        AudioFX.playExplosion();
-        this.shakeIntensity = 22;
-        this.flashColor = '#ff4400';
-        this.flashAlpha = 0.45;
-      }
-      else if (buffDef.id === 'shield') {
-        if (this.hasShield) {
-          let pts = 10;
-          if (this.activeBuff && this.activeBuff.id === 'double') pts *= 2;
-          this.score += pts;
-          AudioFX.playBuff();
-          this.flashColor = '#ffd700';
-          this.flashAlpha = 0.3;
-        } else {
-          this.hasShield = true;
-          AudioFX.playBuff();
-          this.flashColor = '#00ff88';
-          this.flashAlpha = 0.3;
-        }
-      }
-      else {
-        this.activeBuff = {
-          id: buffDef.id,
-          name: t[buffDef.nameKey],
-          color: buffDef.color,
-          timer: CONFIG.BUFF_DURATION_MS / 1000,
-        };
-        AudioFX.playBuff();
-        this.flashColor = buffDef.color;
-        this.flashAlpha = 0.25;
-      }
-    }
-    else if (entity.type === 'heart') {
+      const comboMultiplier = Math.min(1 + Math.floor(this.combo / 10) * 0.1, 2.0);
+      const addedScore = Math.round(this.applyScoreMultiplier(basePts) * comboMultiplier);
+      this.score += addedScore;
+      
+      AudioFX.playExplosion();
+    } else if (entity.type === 'luckybox') {
+      this.applyBuff(entity);
+    } else if (entity.type === 'heart') {
       if (this.hearts < CONFIG.PLAYER_MAX_HEARTS) {
         this.hearts++;
         AudioFX.playHeal();
         this.flashColor = '#ff69b4';
         this.flashAlpha = 0.2;
       } else {
-        let pts = 10;
-        if (this.activeBuff && this.activeBuff.id === 'double') pts *= 2;
-        this.score += pts;
+        this.score += this.applyScoreMultiplier(10);
         AudioFX.playHeal();
         this.flashColor = '#ffd700';
         this.flashAlpha = 0.3;
@@ -302,13 +260,54 @@ export class Game {
     }
   }
 
-  checkSpeedUp() {
-    const interval = CONFIG.SPEED_UP_INTERVAL;
-    while (this.score >= this.lastSpeedUpScore + interval) {
-      this.lastSpeedUpScore += interval;
-      this.gameSpeed = Math.min(this.gameSpeed * CONFIG.SPEED_UP_FACTOR, 4.0);
-      this.speedLevel++;
+  applyBuff(entity) {
+    const buffDef = BUFF_TYPES[randInt(0, BUFF_TYPES.length - 1)];
+    const t = UI_TEXT[this.language];
+
+    if (buffDef.id === 'bomb') {
+      for (let i = this.entities.length - 1; i >= 0; i--) {
+        const ent = this.entities[i];
+        if (ent.alive && this.isAlien(ent.type)) {
+          ent.alive = false;
+          this.explode(ent.cx, ent.cy, ent.type);
+          
+          let basePts = CONFIG.SCORE_PER_ALIEN;
+          if (ent.type === 'speedy') basePts = 15;
+          else if (ent.type === 'zigzag') basePts = 20;
+          else if (ent.type === 'tank') basePts = 30;
+
+          this.score += this.applyScoreMultiplier(basePts);
+          if (ent === this.currentTarget) this.currentTarget = null;
+        }
+      }
+      AudioFX.playExplosion();
+      this.shakeIntensity = 22;
+      this.flashColor = '#ff4400';
+      this.flashAlpha = 0.45;
+    } else if (buffDef.id === 'shield') {
+      if (this.hasShield) {
+        this.score += this.applyScoreMultiplier(10);
+      } else {
+        this.hasShield = true;
+      }
+      AudioFX.playBuff();
+      this.flashColor = buffDef.id === 'shield' ? '#00ff88' : '#ffd700';
+      this.flashAlpha = 0.3;
+    } else {
+      this.activeBuff = {
+        id: buffDef.id,
+        name: t[buffDef.nameKey],
+        color: buffDef.color,
+        timer: CONFIG.BUFF_DURATION_MS / 1000,
+      };
+      AudioFX.playBuff();
+      this.flashColor = buffDef.color;
+      this.flashAlpha = 0.25;
     }
+  }
+
+  checkSpeedUp() {
+    this.speedLevel = Math.max(1, Math.floor(this.gameSpeed * 2) - 1);
   }
 
   loseHeart() {
@@ -327,20 +326,23 @@ export class Game {
     this.flashColor = '#ff0000';
     this.flashAlpha = 0.35;
     AudioFX.playHit();
+    this.combo = 0;
 
     if (this.hearts <= 0) {
-      this.state = 'gameover';
-      this.playLobbyMusic();
-      AudioFX.playGameOver();
       if (this.score > this.highScore) {
         this.highScore = this.score;
         localStorage.setItem('typing_space_shooter_highscore', this.highScore);
       }
+      this.router.go(SCREEN.GAME_OVER);
     }
   }
 
   update(dt) {
     this.gameTime += dt;
+
+    // Smooth Dino-style continuous speed increase (0.12% speedup per second, capped at 2.2x)
+    this.gameSpeed = Math.min(1.0 + this.gameTime * 0.0012, 2.2);
+    this.speedLevel = Math.max(1, Math.floor(this.gameSpeed * 2) - 1);
 
     this.playerX = canvas.width / 2;
     this.playerY = canvas.height - 135;
@@ -375,8 +377,30 @@ export class Game {
     const alienInterval = CONFIG.BASE_ALIEN_SPAWN_MS / Math.sqrt(this.gameSpeed);
     if (this.alienSpawnTimer >= alienInterval) {
       this.alienSpawnTimer -= alienInterval;
-      this.spawnEntity('alien');
+      
+      // Determine type selection based on elapsed gameTime
+      let chosenType = 'alien';
+      const rand = Math.random();
+      const t = this.gameTime;
+
+      if (t < 40) {
+        chosenType = 'alien';
+      } else if (t < 80) {
+        chosenType = rand < 0.85 ? 'alien' : 'speedy';
+      } else if (t < 140) {
+        if (rand < 0.75) chosenType = 'alien';
+        else if (rand < 0.90) chosenType = 'speedy';
+        else chosenType = 'zigzag';
+      } else {
+        if (rand < 0.65) chosenType = 'alien';
+        else if (rand < 0.80) chosenType = 'speedy';
+        else if (rand < 0.92) chosenType = 'zigzag';
+        else chosenType = 'tank';
+      }
+      
+      this.spawnEntity(chosenType);
     }
+    
     if (this.luckySpawnTimer >= CONFIG.LUCKY_BOX_SPAWN_MS) {
       this.luckySpawnTimer -= CONFIG.LUCKY_BOX_SPAWN_MS;
       this.spawnEntity('luckybox');
@@ -395,16 +419,26 @@ export class Game {
         continue;
       }
 
-      let speedMod = (e.type === 'alien') ? 1.0 : 0.7;
-      e.y += CONFIG.BASE_FALL_SPEED * this.gameSpeed * speedMod * slowMultiplier * dt;
+      let speedMod = 1.0;
+      if (e.type === 'speedy') speedMod = 1.25;
+      else if (e.type === 'tank') speedMod = 0.45;
+      else if (e.type === 'zigzag') speedMod = 0.75;
+      else if (e.type === 'luckybox' || e.type === 'heart') speedMod = 0.6;
 
+      e.y += CONFIG.BASE_FALL_SPEED * this.gameSpeed * speedMod * slowMultiplier * dt;
+      
+      if (e.type === 'zigzag') {
+        const elapsedSec = (performance.now() - e.spawnTime) / 1000;
+        e.x += Math.sin(elapsedSec * 4.0) * 150 * dt;
+        e.x = clamp(e.x, 40, canvas.width - 40);
+      }
+      
       e.pulsePhase += 3 * dt;
 
       if (e.y > canvas.height + 20) {
         e.alive = false;
-        if (e === this.currentTarget) { this.currentTarget = null; }
-
-        if (e.type === 'alien') {
+        if (e === this.currentTarget) this.currentTarget = null;
+        if (this.isAlien(e.type)) {
           this.loseHeart();
         }
         this.entities.splice(i, 1);
@@ -428,54 +462,17 @@ export class Game {
     }
 
     for (const star of this.stars) star.update(dt);
-
     this.scanlineOffset = (this.scanlineOffset + 30 * dt) % 4;
   }
 
-  t(key) { return UI_TEXT[this.language][key] || UI_TEXT.en[key] || key; }
-
-  render() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-    ctx.fillStyle = '#0a0a12';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    ctx.save();
-    ctx.translate(this.shakeX, this.shakeY);
-
-    for (const star of this.stars) star.render(this.gameTime);
-    renderGrid();
-
-    if (this.state === 'playing' || this.state === 'gameover') {
-      for (const e of this.entities) renderEntity(this, e);
-      for (const b of this.bullets) b.render();
-      for (const p of this.particles) p.render();
-      renderPlayer(this);
-    }
-
-    ctx.restore();
-
-    renderScanlines(this);
-
-    if (this.flashAlpha > 0) {
-      ctx.fillStyle = this.flashColor;
-      ctx.globalAlpha = this.flashAlpha;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.globalAlpha = 1;
-    }
-
-    if (this.state === 'playing' || this.state === 'gameover' || this.state === 'paused') {
-      renderHUD(this);
-    }
-
-    if (this.state === 'menu') renderMenu(this);
-    if (this.state === 'gameover') renderGameOver(this);
-    if (this.state === 'paused') renderPauseMenu(this);
+  t(key) {
+    return UI_TEXT[this.language][key] || UI_TEXT.en[key] || key;
   }
 
   gameLoop(timestamp) {
     if (!this.lastTimestamp) {
       this.lastTimestamp = timestamp;
+      this.lastRenderTime = timestamp;
       this.fpsFrameCount = 0;
       this.fpsLimiterAccumulator = 0;
       this.lastFPSCalculationTime = timestamp;
@@ -484,17 +481,17 @@ export class Game {
     }
 
     let elapsed = timestamp - this.lastTimestamp;
+    this.lastTimestamp = timestamp;
 
     if (elapsed > 200) {
-      this.lastTimestamp = timestamp;
       elapsed = 0;
+      this.lastRenderTime = timestamp;
     }
 
     if (this.targetFPS > 0) {
       this.fpsLimiterAccumulator += elapsed;
       const targetInterval = 1000 / this.targetFPS;
       if (this.fpsLimiterAccumulator < targetInterval - 1.0) {
-        this.lastTimestamp = timestamp;
         this.queueNextFrame();
         return;
       }
@@ -504,9 +501,8 @@ export class Game {
       }
     }
 
-    this.lastTimestamp = timestamp;
-
-    const dt = Math.min(elapsed / 1000, 0.1);
+    const dt = Math.min((timestamp - this.lastRenderTime) / 1000, 0.1);
+    this.lastRenderTime = timestamp;
 
     this.fpsFrameCount++;
     const fpsElapsed = timestamp - this.lastFPSCalculationTime;
@@ -516,18 +512,8 @@ export class Game {
       this.lastFPSCalculationTime = timestamp;
     }
 
-    if (this.state === 'playing') {
-      this.update(dt);
-    } else {
-      for (const star of this.stars) star.update(dt);
-      for (let i = this.particles.length - 1; i >= 0; i--) {
-        this.particles[i].update(dt);
-        if (this.particles[i].life <= 0) this.particles.splice(i, 1);
-      }
-      this.gameTime += dt;
-    }
-
-    this.render();
+    this.router.update(dt);
+    this.router.render();
     this.queueNextFrame();
   }
 
@@ -540,6 +526,7 @@ export class Game {
   }
 
   start() {
+    this.router.go(SCREEN.MENU);
     setupInputListeners(this);
     requestAnimationFrame((t) => this.gameLoop(t));
   }

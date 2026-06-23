@@ -1,5 +1,5 @@
-import { ctx } from '../canvas.js';
-import { CONFIG } from '../config.js';
+import { ctx } from '../core/canvas.js';
+import { CONFIG } from '../config/config.js';
 
 export class Bullet {
   constructor(startX, startY, target) {

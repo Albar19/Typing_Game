@@ -103,19 +103,38 @@ Use the IDE's integrated terminal to run one of the commands above, or install a
 ├── css/
 │   └── style.css           # Minimal styling
 ├── js/
-│   ├── main.js             # Game bootstrapper
-│   ├── game.js             # Core state, update loop, spawning, collisions
-│   ├── input.js            # Keyboard input, pause menu navigation, click handling
-│   ├── config.js           # Word banks, UI text, game constants, buff definitions
-│   ├── canvas.js           # Canvas singleton & resize handling
-│   ├── audio.js            # Sound effects & music manager
-│   ├── utils.js            # Math utilities (rand, clamp, lerp, dist)
-│   ├── rendering.js        # All Canvas drawing (HUD, entities, menus, overlays)
-│   └── entities/
-│       ├── entity.js       # Alien / power-up / heart entity
-│       ├── bullet.js       # Laser bullet with trail
-│       ├── particle.js     # Explosion particles
-│       └── star.js         # Scrolling starfield
+│   ├── main.js             # Game bootstrapper (thin entry point)
+│   ├── core/               # Core game systems
+│   │   ├── game.js         # State, update loop, spawning, collisions
+│   │   ├── input.js        # Keyboard & mouse input, pause navigation
+│   │   ├── canvas.js       # Canvas singleton & resize handling
+│   │   ├── audio.js        # SFX & music (pre-cached via cloneNode)
+│   │   └── utils.js        # Math utilities (randInt, clamp, lerp, dist)
+│   ├── config/             # Static data & configuration
+│   │   ├── config.js       # Game constants, UI text, buffs, image preload
+│   │   └── wordbanks/      # Word banks — per language & difficulty
+│   │       ├── index.js    # Aggregator, exports getWordBanks()
+│   │       ├── en/         # English words
+│   │       │   ├── easy.js
+│   │       │   ├── medium.js
+│   │       │   ├── hard.js
+│   │       │   └── expert.js
+│   │       └── id/         # Indonesian words
+│   │           ├── easy.js
+│   │           ├── medium.js
+│   │           ├── hard.js
+│   │           └── expert.js
+│   ├── rendering/          # All canvas drawing, one concern per file
+│   │   ├── effects.js      # Scanlines, grid, heart shape (shared)
+│   │   ├── player.js       # Player ship + shield drawing
+│   │   ├── entity.js       # Entity drawing + word labels
+│   │   ├── hud.js          # Score, HP, buff bar, typing box
+│   │   └── menus.js        # Menu, game over, pause screens
+│   └── entities/           # Game entity classes
+│       ├── entity.js       # Base entity (alien / power-up / heart)
+│       ├── bullet.js       # Laser bullet with trail effect
+│       ├── particle.js     # Explosion debris particles
+│       └── star.js         # Scrolling parallax starfield
 └── assets/
     └── audio/              # Audio files (MP3 + WAV)
 ```
@@ -124,14 +143,23 @@ Use the IDE's integrated terminal to run one of the commands above, or install a
 
 ### Adding Words
 
-Edit `js/config.js` — word banks are organized by language and difficulty:
+Edit the files under `js/config/wordbanks/` — each difficulty tier has its own file per language:
 
-- `WORD_BANKS_EN` — English (easy / medium / hard / expert)
-- `WORD_BANKS_ID` — Indonesian (easy / medium / hard / expert)
+- `en/easy.js`, `en/medium.js`, `en/hard.js`, `en/expert.js` — English
+- `id/easy.js`, `id/medium.js`, `id/hard.js`, `id/expert.js` — Indonesian
+
+Each file exports a single `default` array of words. The aggregator `index.js` composes them into `WORD_BANKS_EN` / `WORD_BANKS_ID`.
 
 ### Adding Power-ups
 
-Add a new entry to `BUFF_TYPES` in `js/config.js` and implement its effect in `js/game.js`.
+Add a new entry to `BUFF_TYPES` in `js/config/config.js` and implement its effect in `js/core/game.js`.
+
+### Code Conventions
+
+- **One module, one concern** — each file has a single responsibility
+- **No global state** — all shared state lives in the `Game` instance, passed explicitly
+- **No `window.game`** — audio volume is injected via `AudioFX.setVolume()`
+- **ES Modules** — all imports/exports are explicit; zero global leak
 
 ## 📝 License
 
