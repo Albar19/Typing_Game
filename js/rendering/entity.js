@@ -29,9 +29,9 @@ function renderTargetReticle(game, cx, cy, size) {
 }
 
 function renderWordLabel(e) {
-  const word = e.word;
-  const fontSize = 16;
-  ctx.font = `bold ${fontSize}px 'Share Tech Mono', monospace`;
+    const word = e.word;
+    const fontSize = 20;
+    ctx.font = `bold ${fontSize}px 'Share Tech Mono', monospace`;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'bottom';
 

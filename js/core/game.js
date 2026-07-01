@@ -50,8 +50,8 @@ export class Game {
     this.hasShield = false;
     this.shieldFlashTimer = 0;
     this.alienSpawnTimer = 0;
-    this.luckySpawnTimer = 0;
-    this.heartSpawnTimer = 0;
+    this.luckySpawnTimer = -3000;
+    this.heartSpawnTimer = -6000;
     this.shakeIntensity = 0;
     this.shakeX = 0;
     this.shakeY = 0;
@@ -142,8 +142,8 @@ export class Game {
     }
     this.entities = [];
     this.alienSpawnTimer = 0;
-    this.luckySpawnTimer = 0;
-    this.heartSpawnTimer = 0;
+    this.luckySpawnTimer = -3000;
+    this.heartSpawnTimer = -6000;
   }
 
   reset() {
@@ -153,9 +153,9 @@ export class Game {
   }
 
   getDifficultyTier() {
-    if (this.score < 100) return 'easy';
-    if (this.score < 250) return 'medium';
-    if (this.score < 500) return 'hard';
+    if (this.speedLevel < 2) return 'easy';
+    if (this.speedLevel < 3) return 'medium';
+    if (this.speedLevel < 4) return 'hard';
     return 'expert';
   }
 
@@ -190,7 +190,22 @@ export class Game {
 
     const word = this.getWord(isSpecial, forceTier);
     const padding = 60;
-    const x = randInt(padding, canvas.width - padding);
+    const MIN_GAP = 80;
+    const maxAttempts = 10;
+
+    let x = randInt(padding, canvas.width - padding);
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
+      let overlap = false;
+      for (const e of this.entities) {
+        if (e.alive && Math.abs(e.x - x) < MIN_GAP) {
+          overlap = true;
+          break;
+        }
+      }
+      if (!overlap) break;
+      x = randInt(padding, canvas.width - padding);
+    }
+
     const entity = new Entity(type, x, word);
     this.entities.push(entity);
   }
@@ -307,7 +322,17 @@ export class Game {
   }
 
   checkSpeedUp() {
-    this.speedLevel = Math.max(1, Math.floor(this.gameSpeed * 2) - 1);
+    const milestonesPassed = Math.floor(
+      (this.score - this.lastSpeedUpScore) / CONFIG.SPEED_UP_INTERVAL
+    );
+    if (milestonesPassed > 0) {
+      this.gameSpeed = Math.min(
+        this.gameSpeed * Math.pow(CONFIG.SPEED_UP_FACTOR, milestonesPassed),
+        3.0
+      );
+      this.lastSpeedUpScore += milestonesPassed * CONFIG.SPEED_UP_INTERVAL;
+    }
+    this.speedLevel = Math.max(1, Math.floor((this.gameSpeed - 1) * 2) + 1);
   }
 
   loseHeart() {
@@ -340,9 +365,7 @@ export class Game {
   update(dt) {
     this.gameTime += dt;
 
-    // Smooth Dino-style continuous speed increase (0.12% speedup per second, capped at 2.2x)
-    this.gameSpeed = Math.min(1.0 + this.gameTime * 0.0012, 2.2);
-    this.speedLevel = Math.max(1, Math.floor(this.gameSpeed * 2) - 1);
+    this.speedLevel = Math.max(1, Math.floor((this.gameSpeed - 1) * 2) + 1);
 
     this.playerX = canvas.width / 2;
     this.playerY = canvas.height - 135;
@@ -375,7 +398,8 @@ export class Game {
     this.heartSpawnTimer += dtMs;
 
     const alienInterval = CONFIG.BASE_ALIEN_SPAWN_MS / Math.sqrt(this.gameSpeed);
-    if (this.alienSpawnTimer >= alienInterval) {
+    const aliveAliens = this.entities.filter(e => e.alive && this.isAlien(e.type)).length;
+    if (aliveAliens < CONFIG.MAX_ENTITIES && this.alienSpawnTimer >= alienInterval) {
       this.alienSpawnTimer -= alienInterval;
       
       // Determine type selection based on elapsed gameTime

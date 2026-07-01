@@ -92,19 +92,20 @@ export const UI_TEXT = {
 export const CONFIG = {
   PLAYER_DEFAULT_HEARTS: 3,
   PLAYER_MAX_HEARTS: 5,
-  BASE_FALL_SPEED: 48,           // pixels per second (slower descent for typing learners)
+  BASE_FALL_SPEED: 30,           // pixels per second (slower for beginners)
   BULLET_SPEED: 1100,            // pixels per second
-  BASE_ALIEN_SPAWN_MS: 4200,     // milliseconds (more time between spawns)
-  LUCKY_BOX_SPAWN_MS: 12000,
-  HEART_SPAWN_MS: 18000,
+  BASE_ALIEN_SPAWN_MS: 5000,     // milliseconds (more breathing room)
+  LUCKY_BOX_SPAWN_MS: 15000,
+  HEART_SPAWN_MS: 22000,
   BUFF_DURATION_MS: 10000,
-  SPEED_UP_INTERVAL: 50,         // every N points (slightly longer interval)
-  SPEED_UP_FACTOR: 1.05,         // multiplier per level (5% increase for better tempo)
+  SPEED_UP_INTERVAL: 50,         // every N points gameSpeed increases
+  SPEED_UP_FACTOR: 1.05,         // multiplier per interval (5%)
   SCORE_PER_ALIEN: 10,
   ENTITY_SIZE: 42,
   PLAYER_SIZE: 52,
   MAX_PARTICLES: 200,
   STAR_COUNT: 120,
+  MAX_ENTITIES: 5,               // max aliens on screen at once
 };
 
 // ─── BUFF DEFINITIONS ────────────────────────────────────────
