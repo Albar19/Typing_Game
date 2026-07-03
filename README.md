@@ -6,15 +6,19 @@ Type words to destroy falling alien/glitch enemies before they breach your syste
 ## 🎮 Features
 
 - **Typing-based combat** — Type words that appear above aliens to fire lasers
+- **4 alien types** — Normal, Speedy (fast & small), Tank (slow, big, high score), Zigzag (sinusoidal movement)
+- **Combo/Streak system** — Build combos for score multiplier (up to 2x at 100 streak); progress bar per 10 hits
 - **4 difficulty tiers** — Easy (3-letter) to Expert (8+ letter) words, auto-scaling with score
+- **Auto-targeting** — First letter typed auto-targets the lowest alien with matching initial
 - **Bilingual support** — English & Indonesian (switchable mid-game via pause menu)
 - **5 Power-ups** — Slow Motion, Double Score, Bomb (screen clear), Shield, Auto Laser
 - **Endless progression** — Speed increases every 50 points (up to 4x)
-- **Health system** — 3 hearts (max 5 via pickup), shield protection
-- **Settings persistence** — Volume, SFX, and high score saved to `localStorage`
-- **Visual effects** — Screen shake, particle explosions, scrolling starfield, neon scanlines
-- **Audio system** — Background music + 8 SFX (typing, laser, explosion, buffs, etc.)
-- **FPS options** — 60 / 120 / 144 / Unlimited
+- **Health system** — 3 hearts (max 5 via pickup), shield protection with break animation
+- **Settings persistence** — Volume, SFX, error shake, and high score saved to `localStorage`
+- **Visual effects** — Screen shake, particle explosions, scrolling starfield, neon scanlines, screen flash on hit
+- **Audio system** — Background music + 9 SFX (typing, laser, explosion, buffs, heal, hit, game over, error type, score milestone)
+- **FPS options** — 60 / 120 / 144 / Unlimited (uses `requestAnimationFrame` or `setTimeout(0)` fallback)
+- **Auto-pause** — Pauses automatically when tab loses focus
 
 ## 🧰 Tech Stack
 
@@ -81,9 +85,12 @@ Use the IDE's integrated terminal to run one of the commands above, or install a
 
 | Key | Action |
 |-----|--------|
-| `A-Z` | Type letters |
-| `Backspace` | Delete last letter |
+| `A-Z` | Type letters — auto-targets lowest alien with matching first letter |
+| `Backspace` | Clear current typing target (reset word progress) |
 | `Escape` | Pause / Resume |
+| `Arrow Up/Down` | Navigate pause menu rows |
+| `Arrow Left/Right` | Adjust settings (FPS, volume) in pause menu |
+| `Enter` | Start game, restart, toggle settings |
 | Mouse | Click menu buttons, toggle settings |
 
 ### Power-ups
@@ -96,6 +103,23 @@ Use the IDE's integrated terminal to run one of the commands above, or install a
 | 🛡️ | Shield | Blocks one hit |
 | ⚡ | Auto Laser | Auto-completes words for 10s |
 
+### Enemy Types
+
+| Type | Visual | Behavior | Score |
+|------|--------|----------|-------|
+| Normal | Red hexagon | Falls straight down | 10 pts |
+| Speedy | Cyan, smaller | Falls 25% faster, easy words | 15 pts |
+| Tank | Purple, larger | Falls 55% slower, hard words, tanky | 30 pts |
+| Zigzag | Green | Sinusoidal horizontal movement | 20 pts |
+
+### Combo System
+
+- **Building combos** — Each correctly typed letter increments your streak
+- **Score multiplier** — Every 10 consecutive hits adds +0.1x multiplier (up to 2.0x at 100 streak)
+- **Progress bar** — Visual indicator shows progress toward next multiplier tier
+- **Breaking combo** — Mistyping or missing a word resets combo to 0
+- **High combo glow** — Streak ≥ 10 highlights the counter in green with neon glow
+
 ## 📁 Project Structure
 
 ```
@@ -105,10 +129,11 @@ Use the IDE's integrated terminal to run one of the commands above, or install a
 ├── js/
 │   ├── main.js             # Game bootstrapper (thin entry point)
 │   ├── core/               # Core game systems
-│   │   ├── game.js         # State, update loop, spawning, collisions
-│   │   ├── input.js        # Keyboard & mouse input, pause navigation
+│   │   ├── game.js         # State, update loop, spawning, collisions, buffs
+│   │   ├── input.js        # Keyboard & mouse input, auto-pause on tab switch
 │   │   ├── canvas.js       # Canvas singleton & resize handling
 │   │   ├── audio.js        # SFX & music (pre-cached via cloneNode)
+│   │   ├── router.js       # Screen state machine (Menu → Playing → Paused → GameOver)
 │   │   └── utils.js        # Math utilities (randInt, clamp, lerp, dist)
 │   ├── config/             # Static data & configuration
 │   │   ├── config.js       # Game constants, UI text, buffs, image preload
@@ -126,17 +151,24 @@ Use the IDE's integrated terminal to run one of the commands above, or install a
 │   │           └── expert.js
 │   ├── rendering/          # All canvas drawing, one concern per file
 │   │   ├── effects.js      # Scanlines, grid, heart shape (shared)
-│   │   ├── player.js       # Player ship + shield drawing
-│   │   ├── entity.js       # Entity drawing + word labels
-│   │   ├── hud.js          # Score, HP, buff bar, typing box
-│   │   └── menus.js        # Menu, game over, pause screens
+│   │   ├── player.js       # Player ship + shield drawing & break animation
+│   │   ├── entity.js       # Entity drawing + word label with typed highlighting
+│   │   └── hud.js          # Score, HP, buff bar, combo meter, typing box
+│   ├── screens/            # Screen logic (update, render, key/mouse handlers)
+│   │   ├── screenMenu.js   # Main menu screen
+│   │   ├── screenPlaying.js# Active gameplay screen (input handling, typing)
+│   │   ├── screenPaused.js # Pause menu with settings (language, FPS, volume, shake)
+│   │   └── screenGameOver.js# Game over screen with final score
+│   ├── ui/                 # Reusable UI components
+│   │   └── button.js       # Button, toggle, arrow button, label, progress bar
 │   └── entities/           # Game entity classes
-│       ├── entity.js       # Base entity (alien / power-up / heart)
+│       ├── entity.js       # Base entity (alien types / power-up / heart)
 │       ├── bullet.js       # Laser bullet with trail effect
 │       ├── particle.js     # Explosion debris particles
 │       └── star.js         # Scrolling parallax starfield
 └── assets/
-    └── audio/              # Audio files (MP3 + WAV)
+    ├── audio/              # Audio files (MP3 + WAV)
+    └── images/             # Game sprites (optional — fallback drawing included)
 ```
 
 ## 🛠️ Development
@@ -160,6 +192,7 @@ Add a new entry to `BUFF_TYPES` in `js/config/config.js` and implement its effec
 - **No global state** — all shared state lives in the `Game` instance, passed explicitly
 - **No `window.game`** — audio volume is injected via `AudioFX.setVolume()`
 - **ES Modules** — all imports/exports are explicit; zero global leak
+- **Screen Router pattern** — each screen (`screenMenu`, `screenPlaying`, etc.) is an object with `update()`, `render()`, `handleKeyDown()`, `handleClick()`, `onEnter()`, `onExit()` methods, registered in `Router`
 
 ## 📝 License
 
